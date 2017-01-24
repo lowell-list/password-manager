@@ -42,7 +42,7 @@ public static void main(String[] args) {
     Frame          frm;                // main frame
     Insets         ins;                // temp object    
     SecretMessageApplet apt;           // the applet we are converting to an application
-    int            wid=500,hgt=600;    // initial (and mimimum) width and height for this application
+    int            wid=500,hgt=600;    // initial (and minimum) width and height for this application
     
     // create the main frame and add the appropriate listener
     frm=new Frame();
