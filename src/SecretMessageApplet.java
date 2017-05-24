@@ -7,8 +7,6 @@
  * Copyright (c)  2002 Lowell List
  * -------------------------------------------------------------------------- */
 
-// 27 Dec 2008  LLL  Class modified to be run as an application
-
 import java.awt.*;
 import java.awt.event.*;
 import java.applet.*;
