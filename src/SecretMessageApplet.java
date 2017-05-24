@@ -92,7 +92,7 @@ public void init() {
     mSearchTextField.addKeyListener(new KeyListener() {
         public void keyTyped(KeyEvent evt) {}
         public void keyPressed(KeyEvent evt) {}
-        public void keyReleased(KeyEvent evt) { onSearchTextKeyEvent(evt); }
+        public void keyReleased(KeyEvent evt) { onSearchTextKeyReleased(evt); }
     });
     mEncryptButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onEncryptButtonAction(evt); }
@@ -246,7 +246,7 @@ private String loadPasswordFileContents() {
 /* INSTANCE METHODS - ENCRYPTION/DECRYPTION                               */
 /**************************************************************************/
 
-private void onSearchTextKeyEvent(KeyEvent evt) {
+private void onSearchTextKeyReleased(KeyEvent evt) {
     System.out.println(evt);
     }
 
