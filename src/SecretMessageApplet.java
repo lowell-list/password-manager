@@ -18,13 +18,13 @@ import javax.swing.*;
 
 public class SecretMessageApplet
 extends java.applet.Applet
-implements ActionListener, ComponentListener
 {
 
 /**************************************************************************/
 /* INSTANCE PROPERTIES                                                    */
 /**************************************************************************/
 
+private TextField            txtfldSearch;
 private TextArea             txtaraMain;
 private Label                lblPassword;
 private TextField            txtfldPassword;
@@ -57,6 +57,7 @@ public void init() {
     this.setLayout(null);
 
     // instantiate components
+    txtfldSearch=new TextField("");
     txtaraMain=new TextArea("",0,0,TextArea.SCROLLBARS_VERTICAL_ONLY);
     lblPassword=new Label();
     txtfldPassword=new TextField();
@@ -74,6 +75,7 @@ public void init() {
     btnSaveAndClose.setLabel("Save and Close");
 
     // add components
+    this.add(txtfldSearch);
     this.add(txtaraMain);
     this.add(lblPassword);
     this.add(txtfldPassword);
@@ -83,10 +85,26 @@ public void init() {
     this.add(lblStatus);
 
     // add listeners
-    this.addComponentListener(this);
-    btnEncrypt.addActionListener(this);
-    btnDecrypt.addActionListener(this);
-    btnSaveAndClose.addActionListener(this);
+    this.addComponentListener(new ComponentListener() {
+        public void componentResized(ComponentEvent evt) { onMainComponentResized(evt); }
+        public void componentMoved(ComponentEvent evt) { }
+        public void componentShown(ComponentEvent evt) { }
+        public void componentHidden(ComponentEvent evt) { }
+    });
+    txtfldSearch.addKeyListener(new KeyListener() {
+        public void keyTyped(KeyEvent evt) {}
+        public void keyPressed(KeyEvent evt) {}
+        public void keyReleased(KeyEvent evt) { onSearchTextKeyEvent(evt); }
+    });
+    btnEncrypt.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent evt) { onEncryptButtonAction(evt); }
+    });
+    btnDecrypt.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent evt) { onDecryptButtonAction(evt); }
+    });
+    btnSaveAndClose.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent evt) { onSaveButtonAction(evt); }
+    });
 
     // load the properties file
     loadProperties();
@@ -104,14 +122,14 @@ public void init() {
 
 // initialize the applet
 public void start() {
-    this.componentResized(null);
+    this.onMainComponentResized(null);
     }
 
 /**************************************************************************/
-/* INSTANCE METHODS - LISTENERS                                           */
+/* INSTANCE METHODS - MAIN COMPONENT                                      */
 /**************************************************************************/
 
-public void componentResized(ComponentEvent e) {
+public void onMainComponentResized(ComponentEvent evt) {
     int            wth;                // applet width
     int            hgt;                // applet height
 
@@ -119,28 +137,14 @@ public void componentResized(ComponentEvent e) {
     wth=Math.max(this.getSize().width,400);
     hgt=Math.max(this.getSize().height,300);
 
-    txtaraMain.setBounds(5,5,wth-10,hgt-60);
+    txtfldSearch.setBounds(5,5,wth-10,20);
+    txtaraMain.setBounds(5,5+txtfldSearch.getBounds().height+5,wth-10,hgt-60-txtfldSearch.getBounds().height-5);
     btnEncrypt.setBounds(wth-150,hgt-50,70,20);
     btnDecrypt.setBounds(wth-75,hgt-50,70,20);
     lblStatus.setBounds(5,hgt-25,wth-160,20);
     btnSaveAndClose.setBounds(wth-150,hgt-25,145,20);
-    lblPassword.setBounds(5,hgt-50,Math.max(lblPassword.getPreferredSize().width,70),20);    
+    lblPassword.setBounds(5,hgt-50,Math.max(lblPassword.getPreferredSize().width,70),20);
     txtfldPassword.setBounds(5+lblPassword.getSize().width+10,hgt-50,100,20);
-    }
-
-public void componentMoved(ComponentEvent e) {
-    }
-
-public void componentShown(ComponentEvent e) {
-    }
-
-public void componentHidden(ComponentEvent e) {
-    }
-
-public void actionPerformed(ActionEvent evt) {
-    if     (evt.getSource()==btnEncrypt)      { ecpButtonActionPerformed(evt); }
-    else if(evt.getSource()==btnDecrypt)      { dcpButtonActionPerformed(evt); }
-    else if(evt.getSource()==btnSaveAndClose) { savButtonActionPerformed(evt); }
     }
 
 /**************************************************************************/
@@ -244,7 +248,11 @@ private String loadPasswordFileContents() {
 /* INSTANCE METHODS - ENCRYPTION/DECRYPTION                               */
 /**************************************************************************/
 
-private void dcpButtonActionPerformed(ActionEvent evt) {
+private void onSearchTextKeyEvent(KeyEvent evt) {
+    System.out.println(evt);
+    }
+
+private void onDecryptButtonAction(ActionEvent evt) {
     String         wndtxt;             // window text
     String         pwdtxt;             // password text
     byte[]         pwdbyt;             // password bytes
@@ -300,7 +308,7 @@ private void dcpButtonActionPerformed(ActionEvent evt) {
     setStatusText("Decrypted ("+bytbuf.length+") bytes.");
     }
 
-private void ecpButtonActionPerformed(ActionEvent e) {
+private void onEncryptButtonAction(ActionEvent evt) {
     String         wndtxt;             // window text
     String         pwdtxt;             // password text
     byte[]         wndbyt;             // window bytes
@@ -343,7 +351,7 @@ private void ecpButtonActionPerformed(ActionEvent e) {
     setStatusText("Encrypted ("+wndbyt.length+") bytes.");
     }
 
-private void savButtonActionPerformed(ActionEvent e) {
+private void onSaveButtonAction(ActionEvent evt) {
     int            rsp;                // response code
     File           filpwd;
     File           filbak;
