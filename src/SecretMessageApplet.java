@@ -62,7 +62,7 @@ public void init() {
     mEncryptButton=new Button();
     mDecryptButton=new Button();
     mSaveAndCloseButton=new Button();
-    lblStatus=new Label();
+    mStatusLabel=new Label();
 
     // setup components
     mPasswordLabel.setText("Password");
@@ -80,7 +80,7 @@ public void init() {
     this.add(mEncryptButton);
     this.add(mDecryptButton);
     this.add(mSaveAndCloseButton);
-    this.add(lblStatus);
+    this.add(mStatusLabel);
 
     // add listeners
     this.addComponentListener(new ComponentListener() {
@@ -139,7 +139,7 @@ public void onMainComponentResized(ComponentEvent evt) {
     mMainTextArea.setBounds(5,5+mSearchTextField.getBounds().height+5,wth-10,hgt-60-mSearchTextField.getBounds().height-5);
     mEncryptButton.setBounds(wth-150,hgt-50,70,20);
     mDecryptButton.setBounds(wth-75,hgt-50,70,20);
-    lblStatus.setBounds(5,hgt-25,wth-160,20);
+    mStatusLabel.setBounds(5,hgt-25,wth-160,20);
     mSaveAndCloseButton.setBounds(wth-150,hgt-25,145,20);
     mPasswordLabel.setBounds(5,hgt-50,Math.max(mPasswordLabel.getPreferredSize().width,70),20);
     mPasswordTextField.setBounds(5+mPasswordLabel.getSize().width+10,hgt-50,100,20);
@@ -150,7 +150,7 @@ public void onMainComponentResized(ComponentEvent evt) {
 /**************************************************************************/
 
 private void setStatusText(String txt) {
-    lblStatus.setText(txt);
+    mStatusLabel.setText(txt);
     }
 
 private void enableControls(boolean flg) {
