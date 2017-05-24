@@ -22,17 +22,17 @@ extends java.applet.Applet
 /* INSTANCE PROPERTIES                                                    */
 /**************************************************************************/
 
-private TextField            txtfldSearch;
-private TextArea             txtaraMain;
-private Label                lblPassword;
-private TextField            txtfldPassword;
-private Button               btnEncrypt;
-private Button               btnDecrypt;
-private Button               btnSaveAndClose;
-private Label                lblStatus;
+private TextField            mSearchTextField;
+private TextArea             mMainTextArea;
+private Label                mPasswordLabel;
+private TextField            mPasswordTextField;
+private Button               mEncryptButton;
+private Button               mDecryptButton;
+private Button               mSaveAndCloseButton;
+private Label                mStatusLabel;
 
-private boolean              initialized=false;
-private Properties           appProperties=null;
+private boolean              mInitialized=false;
+private Properties           mProperties=null;
 
 /**************************************************************************/
 /* INSTANCE CONSTRUCTORS                                                  */
@@ -55,31 +55,31 @@ public void init() {
     this.setLayout(null);
 
     // instantiate components
-    txtfldSearch=new TextField("");
-    txtaraMain=new TextArea("",0,0,TextArea.SCROLLBARS_VERTICAL_ONLY);
-    lblPassword=new Label();
-    txtfldPassword=new TextField();
-    btnEncrypt=new Button();
-    btnDecrypt=new Button();
-    btnSaveAndClose=new Button();
+    mSearchTextField=new TextField("");
+    mMainTextArea=new TextArea("",0,0,TextArea.SCROLLBARS_VERTICAL_ONLY);
+    mPasswordLabel=new Label();
+    mPasswordTextField=new TextField();
+    mEncryptButton=new Button();
+    mDecryptButton=new Button();
+    mSaveAndCloseButton=new Button();
     lblStatus=new Label();
 
     // setup components
-    lblPassword.setText("Password");
-    lblPassword.setAlignment(Label.RIGHT);
-    txtfldPassword.setEchoChar('*');
-    btnEncrypt.setLabel("Encrypt");
-    btnDecrypt.setLabel("Decrypt");
-    btnSaveAndClose.setLabel("Save and Close");
+    mPasswordLabel.setText("Password");
+    mPasswordLabel.setAlignment(Label.RIGHT);
+    mPasswordTextField.setEchoChar('*');
+    mEncryptButton.setLabel("Encrypt");
+    mDecryptButton.setLabel("Decrypt");
+    mSaveAndCloseButton.setLabel("Save and Close");
 
     // add components
-    this.add(txtfldSearch);
-    this.add(txtaraMain);
-    this.add(lblPassword);
-    this.add(txtfldPassword);
-    this.add(btnEncrypt);
-    this.add(btnDecrypt);
-    this.add(btnSaveAndClose);
+    this.add(mSearchTextField);
+    this.add(mMainTextArea);
+    this.add(mPasswordLabel);
+    this.add(mPasswordTextField);
+    this.add(mEncryptButton);
+    this.add(mDecryptButton);
+    this.add(mSaveAndCloseButton);
     this.add(lblStatus);
 
     // add listeners
@@ -89,18 +89,18 @@ public void init() {
         public void componentShown(ComponentEvent evt) { }
         public void componentHidden(ComponentEvent evt) { }
     });
-    txtfldSearch.addKeyListener(new KeyListener() {
+    mSearchTextField.addKeyListener(new KeyListener() {
         public void keyTyped(KeyEvent evt) {}
         public void keyPressed(KeyEvent evt) {}
         public void keyReleased(KeyEvent evt) { onSearchTextKeyEvent(evt); }
     });
-    btnEncrypt.addActionListener(new ActionListener() {
+    mEncryptButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onEncryptButtonAction(evt); }
     });
-    btnDecrypt.addActionListener(new ActionListener() {
+    mDecryptButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onDecryptButtonAction(evt); }
     });
-    btnSaveAndClose.addActionListener(new ActionListener() {
+    mSaveAndCloseButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onSaveButtonAction(evt); }
     });
 
@@ -109,13 +109,13 @@ public void init() {
 
     // load password file
     tmptxt=loadPasswordFileContents();
-    if(tmptxt!=null) { txtaraMain.setText(tmptxt); }
+    if(tmptxt!=null) { mMainTextArea.setText(tmptxt); }
     
     // set focus to the password input box
-    txtfldPassword.requestFocus();
+    mPasswordTextField.requestFocus();
 
     // finish
-    initialized=true;
+    mInitialized=true;
     }
 
 // initialize the applet
@@ -131,18 +131,18 @@ public void onMainComponentResized(ComponentEvent evt) {
     int            wth;                // applet width
     int            hgt;                // applet height
 
-    if(!initialized) { return; }
+    if(!mInitialized) { return; }
     wth=Math.max(this.getSize().width,400);
     hgt=Math.max(this.getSize().height,300);
 
-    txtfldSearch.setBounds(5,5,wth-10,20);
-    txtaraMain.setBounds(5,5+txtfldSearch.getBounds().height+5,wth-10,hgt-60-txtfldSearch.getBounds().height-5);
-    btnEncrypt.setBounds(wth-150,hgt-50,70,20);
-    btnDecrypt.setBounds(wth-75,hgt-50,70,20);
+    mSearchTextField.setBounds(5,5,wth-10,20);
+    mMainTextArea.setBounds(5,5+mSearchTextField.getBounds().height+5,wth-10,hgt-60-mSearchTextField.getBounds().height-5);
+    mEncryptButton.setBounds(wth-150,hgt-50,70,20);
+    mDecryptButton.setBounds(wth-75,hgt-50,70,20);
     lblStatus.setBounds(5,hgt-25,wth-160,20);
-    btnSaveAndClose.setBounds(wth-150,hgt-25,145,20);
-    lblPassword.setBounds(5,hgt-50,Math.max(lblPassword.getPreferredSize().width,70),20);
-    txtfldPassword.setBounds(5+lblPassword.getSize().width+10,hgt-50,100,20);
+    mSaveAndCloseButton.setBounds(wth-150,hgt-25,145,20);
+    mPasswordLabel.setBounds(5,hgt-50,Math.max(mPasswordLabel.getPreferredSize().width,70),20);
+    mPasswordTextField.setBounds(5+mPasswordLabel.getSize().width+10,hgt-50,100,20);
     }
 
 /**************************************************************************/
@@ -154,10 +154,10 @@ private void setStatusText(String txt) {
     }
 
 private void enableControls(boolean flg) {
-    txtaraMain.setEnabled(flg);
-    txtfldPassword.setEnabled(flg);
-    btnEncrypt.setEnabled(flg);
-    btnDecrypt.setEnabled(flg);
+    mMainTextArea.setEnabled(flg);
+    mPasswordTextField.setEnabled(flg);
+    mEncryptButton.setEnabled(flg);
+    mDecryptButton.setEnabled(flg);
     }
 
 private String formatThrowable(Throwable thr) {
@@ -173,7 +173,7 @@ private void loadProperties() {
 
     defprp=new Properties();
     defprp.setProperty(PRPNAM_PWDFILPTH,"Passwords.txt");
-    appProperties=new Properties(defprp);
+    mProperties=new Properties(defprp);
     
     try {
         BufferedReader br;
@@ -181,7 +181,7 @@ private void loadProperties() {
         
         // load the existing properties file
         br=new BufferedReader(new FileReader(propertiesFilename));
-        appProperties.load(br);
+        mProperties.load(br);
         br.close();
         setStatusText("Loaded the properties file."); 
         }
@@ -204,7 +204,7 @@ private void loadProperties() {
         }    
     catch(Exception exp) {
         setStatusText(formatThrowable(exp));
-        appProperties=new Properties(defprp); // use default properties if there was an error reading the file
+        mProperties=new Properties(defprp); // use default properties if there was an error reading the file
         }
     }
 
@@ -214,7 +214,7 @@ private String loadPasswordFileContents() {
     String         pwdfiltxt=null;     // contents of the password file
     
     // get the password file path
-    pwdfilpth=appProperties.getProperty(PRPNAM_PWDFILPTH);
+    pwdfilpth=mProperties.getProperty(PRPNAM_PWDFILPTH);
     
     // open the passwords file and read its entire contents
     try {
@@ -260,9 +260,9 @@ private void onDecryptButtonAction(ActionEvent evt) {
 
     // get window and password text
     enableControls(false);
-    wndtxt=txtaraMain.getText();
+    wndtxt=mMainTextArea.getText();
     if(wndtxt.length()==0) { setStatusText("Text Area cannot be blank."); enableControls(true); return; }
-    pwdtxt=txtfldPassword.getText();
+    pwdtxt=mPasswordTextField.getText();
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
 
     // convert password to bytes
@@ -291,7 +291,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
     // create the final string from the decrypted bytes
     setStatusText("Converting decrypted bytes to a string...");
     try {
-        txtaraMain.setText(new String(bytbuf,encoding));
+        mMainTextArea.setText(new String(bytbuf,encoding));
         }
     catch(UnsupportedEncodingException exp) {
         setStatusText(formatThrowable(exp));
@@ -301,8 +301,8 @@ private void onDecryptButtonAction(ActionEvent evt) {
 
     // done
     enableControls(true);
-    txtaraMain.setCaretPosition(0);
-    txtaraMain.requestFocus();
+    mMainTextArea.setCaretPosition(0);
+    mMainTextArea.requestFocus();
     setStatusText("Decrypted ("+bytbuf.length+") bytes.");
     }
 
@@ -316,9 +316,9 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     // get window and password text
     enableControls(false);
-    wndtxt=txtaraMain.getText();
+    wndtxt=mMainTextArea.getText();
     if(wndtxt.length()==0) { setStatusText("Text Area cannot be blank."); enableControls(true); return; }
-    pwdtxt=txtfldPassword.getText();
+    pwdtxt=mPasswordTextField.getText();
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
 
     // convert window text and password to bytes
@@ -340,12 +340,12 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     // convert bytes to hex characters
     setStatusText("Converting encrypted bytes to hex...");
-    txtaraMain.setText(getHexString(wndbyt));
+    mMainTextArea.setText(getHexString(wndbyt));
 
     // done
     enableControls(true);
-    txtaraMain.setCaretPosition(0);
-    txtaraMain.requestFocus();
+    mMainTextArea.setCaretPosition(0);
+    mMainTextArea.requestFocus();
     setStatusText("Encrypted ("+wndbyt.length+") bytes.");
     }
 
@@ -359,7 +359,7 @@ private void onSaveButtonAction(ActionEvent evt) {
     try {
         // get the filenames
         filbak=new File("PasswordsBackup.txt");
-        filpwd=new File(appProperties.getProperty(PRPNAM_PWDFILPTH));
+        filpwd=new File(mProperties.getProperty(PRPNAM_PWDFILPTH));
 
         // confirm if the password file already exists
         if(filpwd.exists()) {
@@ -381,7 +381,7 @@ private void onSaveButtonAction(ActionEvent evt) {
         
         // write the new file contents
         fw=new FileWriter(filpwd);
-        fw.write(txtaraMain.getText());
+        fw.write(mMainTextArea.getText());
         fw.close();
         }
     catch(Exception exp) {
