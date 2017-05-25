@@ -243,12 +243,58 @@ private String loadPasswordFileContents() {
     }
 
 /**************************************************************************/
-/* INSTANCE METHODS - ENCRYPTION/DECRYPTION                               */
+/* INSTANCE METHODS - SEARCH                                              */
 /**************************************************************************/
 
 private void onSearchTextKeyReleased(KeyEvent evt) {
+    int            selidx;             // selection index
+
+    if(evt.getKeyCode()==KeyEvent.VK_ENTER) {
+
+        if((evt.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK)==KeyEvent.SHIFT_DOWN_MASK) {
+                System.out.println("SHIFT IS DOWN");
+                // TODO: search backwards
+            }
+
+        selidx=mMainTextArea.getSelectionStart();
+        selidx++;
+        mMainTextArea.setSelectionStart(selidx);
+        mMainTextArea.setSelectionEnd(selidx);
+        }
+
     System.out.println(evt);
+    searchAndSelect();
     }
+
+private void searchAndSelect() {
+    String         mantxt;             // main text
+    String         schtxt;             // search text
+    int            selidx;             // selection start index
+    int            schidx;             // search index
+
+    // get search text and main text
+    mantxt=mMainTextArea.getText().toLowerCase();
+    schtxt=mSearchTextField.getText().toLowerCase();
+    /**/System.out.println("search text: " + schtxt);
+
+    // run search starting at current selection, wrapping if necessary
+    selidx=mMainTextArea.getSelectionStart();
+    /**/System.out.println("selection start index: " + selidx);
+    schidx=mantxt.indexOf(schtxt,selidx);
+    /**/System.out.println("search index (pass 1): " + schidx);
+    if(schidx==-1) { schidx=mantxt.indexOf(schtxt,0); }
+    /**/System.out.println("search index (pass 2): " + schidx);
+
+    if(schidx>=0) {
+        /**/System.out.println("found at: " + schidx);
+        mMainTextArea.setSelectionStart(schidx);
+        mMainTextArea.setSelectionEnd(schidx+schtxt.length());
+        }
+    }
+
+/**************************************************************************/
+/* INSTANCE METHODS - ENCRYPTION/DECRYPTION                               */
+/**************************************************************************/
 
 private void onDecryptButtonAction(ActionEvent evt) {
     String         wndtxt;             // window text
