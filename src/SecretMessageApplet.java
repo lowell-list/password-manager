@@ -22,6 +22,7 @@ extends java.applet.Applet
 /* INSTANCE PROPERTIES                                                    */
 /**************************************************************************/
 
+private Label                mSearchLabel;
 private TextField            mSearchTextField;
 private TextArea             mMainTextArea;
 private Label                mPasswordLabel;
@@ -55,6 +56,7 @@ public void init() {
     this.setLayout(null);
 
     // instantiate components
+    mSearchLabel=new Label();
     mSearchTextField=new TextField("");
     mMainTextArea=new TextArea("",0,0,TextArea.SCROLLBARS_VERTICAL_ONLY);
     mPasswordLabel=new Label();
@@ -65,6 +67,8 @@ public void init() {
     mStatusLabel=new Label();
 
     // setup components
+    mSearchLabel.setText("Search");
+    mSearchLabel.setAlignment(Label.RIGHT);
     mPasswordLabel.setText("Password");
     mPasswordLabel.setAlignment(Label.RIGHT);
     mPasswordTextField.setEchoChar('*');
@@ -73,6 +77,7 @@ public void init() {
     mSaveAndCloseButton.setLabel("Save and Close");
 
     // add components
+    this.add(mSearchLabel);
     this.add(mSearchTextField);
     this.add(mMainTextArea);
     this.add(mPasswordLabel);
@@ -135,8 +140,9 @@ public void onMainComponentResized(ComponentEvent evt) {
     wth=Math.max(this.getSize().width,400);
     hgt=Math.max(this.getSize().height,300);
 
-    mSearchTextField.setBounds(5,5,wth-10,20);
-    mMainTextArea.setBounds(5,5+mSearchTextField.getBounds().height+5,wth-10,hgt-60-mSearchTextField.getBounds().height-5);
+    mSearchLabel.setBounds(5,5,Math.max(mSearchLabel.getPreferredSize().width,70),20);
+    mSearchTextField.setBounds(5+mSearchLabel.getSize().width+10,5,wth-5-mSearchLabel.getSize().width-10-5,20);
+    mMainTextArea.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
     mEncryptButton.setBounds(wth-150,hgt-50,70,20);
     mDecryptButton.setBounds(wth-75,hgt-50,70,20);
     mStatusLabel.setBounds(5,hgt-25,wth-160,20);
