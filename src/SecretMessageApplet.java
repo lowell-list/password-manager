@@ -180,7 +180,7 @@ private void loadProperties() {
         String         tmpstr;
         
         // load the existing properties file
-        br=new BufferedReader(new FileReader(propertiesFilename));
+        br=new BufferedReader(new FileReader(PROPERTIES_FILENAME));
         mProperties.load(br);
         br.close();
         setStatusText("Loaded the properties file."); 
@@ -191,7 +191,7 @@ private void loadProperties() {
             File            f;
             FileWriter      fw;
             
-            f=new File(propertiesFilename);
+            f=new File(PROPERTIES_FILENAME);
             f.createNewFile();
             fw=new FileWriter(f);
             defprp.store(fw,"Password Manager Property File");
@@ -247,46 +247,51 @@ private String loadPasswordFileContents() {
 /**************************************************************************/
 
 private void onSearchTextKeyReleased(KeyEvent evt) {
-    int            selidx;             // selection index
-
     if(evt.getKeyCode()==KeyEvent.VK_ENTER) {
-
+        // search for the next occurrence
         if((evt.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK)==KeyEvent.SHIFT_DOWN_MASK) {
-                System.out.println("SHIFT IS DOWN");
-                // TODO: search backwards
+            searchAndSelect(mMainTextArea.getSelectionStart()-1,SEARCH_DIRECTION_BACKWARD);
             }
-
-        selidx=mMainTextArea.getSelectionStart();
-        selidx++;
-        mMainTextArea.setSelectionStart(selidx);
-        mMainTextArea.setSelectionEnd(selidx);
+        else {
+            searchAndSelect(mMainTextArea.getSelectionStart()+1,SEARCH_DIRECTION_FORWARD);
+            }
         }
-
-    System.out.println(evt);
-    searchAndSelect();
+    else {
+        // search as letters are typed
+        searchAndSelect(mMainTextArea.getSelectionStart(),SEARCH_DIRECTION_FORWARD);
+        }
     }
 
-private void searchAndSelect() {
-    String         mantxt;             // main text
-    String         schtxt;             // search text
-    int            selidx;             // selection start index
+/**
+ * Search for the current search text in the main text area, and select the first matching text found.
+ * Wrap if necessary.
+ *
+ * @param startIndex    The index at which to start searching.
+ * @param direction     A valid SEARCH_DIRECTION_ constant which indicates which direction to search.
+ */
+private void searchAndSelect(int startIndex, int direction) {
+    String         mantxt;             // main text, converted to lowercase
+    String         schtxt;             // search text, converted to lowercase
     int            schidx;             // search index
 
     // get search text and main text
     mantxt=mMainTextArea.getText().toLowerCase();
     schtxt=mSearchTextField.getText().toLowerCase();
-    /**/System.out.println("search text: " + schtxt);
 
-    // run search starting at current selection, wrapping if necessary
-    selidx=mMainTextArea.getSelectionStart();
-    /**/System.out.println("selection start index: " + selidx);
-    schidx=mantxt.indexOf(schtxt,selidx);
-    /**/System.out.println("search index (pass 1): " + schidx);
-    if(schidx==-1) { schidx=mantxt.indexOf(schtxt,0); }
-    /**/System.out.println("search index (pass 2): " + schidx);
+    // search for text
+    if(direction==SEARCH_DIRECTION_FORWARD) {
+        // search forward, wrapping if necessary
+        schidx=mantxt.indexOf(schtxt,startIndex);
+        if(schidx==-1) { schidx=mantxt.indexOf(schtxt); } // start at the beginning
+        }
+    else {
+        // search backward, wrapping if necessary
+        schidx=mantxt.lastIndexOf(schtxt,startIndex);
+        if(schidx==-1) { schidx=mantxt.lastIndexOf(schtxt); } // start at the end
+        }
 
+    // select text if found
     if(schidx>=0) {
-        /**/System.out.println("found at: " + schidx);
         mMainTextArea.setSelectionStart(schidx);
         mMainTextArea.setSelectionEnd(schidx+schtxt.length());
         }
@@ -314,7 +319,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
     // convert password to bytes
     setStatusText("Converting password to bytes...");
     try {
-        pwdbyt=pwdtxt.getBytes(encoding);
+        pwdbyt=pwdtxt.getBytes(ENCODING);
         }
     catch(UnsupportedEncodingException exp) {
         setStatusText(formatThrowable(exp));
@@ -337,7 +342,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
     // create the final string from the decrypted bytes
     setStatusText("Converting decrypted bytes to a string...");
     try {
-        mMainTextArea.setText(new String(bytbuf,encoding));
+        mMainTextArea.setText(new String(bytbuf,ENCODING));
         }
     catch(UnsupportedEncodingException exp) {
         setStatusText(formatThrowable(exp));
@@ -368,10 +373,10 @@ private void onEncryptButtonAction(ActionEvent evt) {
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
 
     // convert window text and password to bytes
-    setStatusText("Converting to "+encoding+" bytes...");
+    setStatusText("Converting to "+ENCODING+" bytes...");
     try {
-        wndbyt=wndtxt.getBytes(encoding);
-        pwdbyt=pwdtxt.getBytes(encoding);
+        wndbyt=wndtxt.getBytes(ENCODING);
+        pwdbyt=pwdtxt.getBytes(ENCODING);
         }
     catch(UnsupportedEncodingException exp) {
         setStatusText(formatThrowable(exp));
@@ -509,9 +514,11 @@ private int getHexDigitValue(char hexdgt) throws Exception {
 /* STATIC PROPERTIES                                                      */
 /**************************************************************************/
 
-private static final String            encoding="UTF8";
-private static final String            propertiesFilename="PasswordManager.cfg";
+private static final String            PROPERTIES_FILENAME="PasswordManager.cfg";
 private static final String            PRPNAM_PWDFILPTH="pwdfilpth";           // property: password file path
+private static final String            ENCODING="UTF8";
+private static final int               SEARCH_DIRECTION_FORWARD=1;
+private static final int               SEARCH_DIRECTION_BACKWARD=2;
 
 /**************************************************************************/
 /* STATIC INIT & MAIN                                                     */
