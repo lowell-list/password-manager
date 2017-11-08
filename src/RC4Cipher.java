@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------
- * Description : SecretMessageCipher
+ * Description : RC4Cipher
  * Author      : Lowell List
  * Date        : 04 Mar 2002
  * Origin OS   : Windows 2000
@@ -7,7 +7,7 @@
  * Copyright (c)  2002 Lowell List
  * -------------------------------------------------------------------------- */
 
-public class SecretMessageCipher
+public class RC4Cipher
 extends java.lang.Object
 {
 
@@ -22,7 +22,7 @@ private int         index1,index2;                // RC4 state indeces
 /* INSTANCE CONSTRUCTORS                                                  */
 /**************************************************************************/
 
-public SecretMessageCipher(byte[] key) {
+public RC4Cipher(byte[] key) {
     state=new byte[256];
     initState(key,0,key.length);
     }

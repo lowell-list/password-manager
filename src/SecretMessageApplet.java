@@ -312,7 +312,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
     String         pwdtxt;             // password text
     byte[]         pwdbyt;             // password bytes
     byte[]         bytbuf;             // byte buffer
-    SecretMessageCipher cph;           // RC4 cipher
+    RC4Cipher      rc4cph;             // RC4 cipher
     String         decstr;             // decrypted String
 
     // get window and password text
@@ -342,8 +342,8 @@ private void onDecryptButtonAction(ActionEvent evt) {
 
     // decrypt the bytes using the RC4 cipher
     setStatusText("Decrypting ("+bytbuf.length+") bytes...");
-    cph=new SecretMessageCipher(pwdbyt);
-    cph.decrypt(bytbuf,bytbuf);
+    rc4cph=new RC4Cipher(pwdbyt);
+    rc4cph.decrypt(bytbuf,bytbuf);
 
     // create the final string from the decrypted bytes
     setStatusText("Converting decrypted bytes to a string...");
@@ -368,7 +368,8 @@ private void onEncryptButtonAction(ActionEvent evt) {
     String         pwdtxt;             // password text
     byte[]         wndbyt;             // window bytes
     byte[]         pwdbyt;             // password bytes
-    SecretMessageCipher cph;           // RC4 cipher
+    RC4Cipher      rc4cph;             // RC4 cipher
+    AES256Cipher   aes256cph;          // AES 256 cipher
     String         utfstr;             // UTF8 string
 
     // get window and password text
@@ -392,8 +393,11 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     // encrypt the bytes using the RC4 cipher
     setStatusText("Encrypting ("+wndbyt.length+") bytes...");
-    cph=new SecretMessageCipher(pwdbyt);
-    cph.encrypt(wndbyt,wndbyt);
+    rc4cph=new RC4Cipher(pwdbyt);
+    rc4cph.encrypt(wndbyt,wndbyt);
+
+    // TODO: encrypt again with AES-256
+    aes256cph=new AES256Cipher();
 
     // convert bytes to hex characters
     setStatusText("Converting encrypted bytes to hex...");
