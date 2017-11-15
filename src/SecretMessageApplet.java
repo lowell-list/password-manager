@@ -398,6 +398,7 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     // TODO: encrypt again with AES-256
     aes256cph=new AES256Cipher();
+    aes256cph.encrypt(pwdtxt.toCharArray(),wndbyt);
 
     // convert bytes to hex characters
     setStatusText("Converting encrypted bytes to hex...");
