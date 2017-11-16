@@ -393,16 +393,17 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     setStatusText("Encrypting ("+wndbyt.length+") bytes...");
 
-    // first encrypt the bytes using the RC4 cipher
+    // first encrypt the window bytes using the RC4 cipher
     rc4cph=new RC4Cipher(pwdbyt);
     rc4cph.encrypt(wndbyt,wndbyt);
 
     // final encrypt with AES-256
     /**/System.out.println("original text: " + new String(wndbyt));
-    Properties aes256prp = AES256Cipher.encrypt(pwdtxt.toCharArray(),wndbyt);
-    /**/aes256prp.list(System.out);
-    byte[] tgtbyt = AES256Cipher.decrypt(pwdtxt.toCharArray(),aes256prp);
-    /**/System.out.println("decrypted text: " + new String(tgtbyt));
+    byte[] encbyt = AES256Cipher.encrypt(pwdtxt.toCharArray(),wndbyt);
+    /**/System.out.println(Base64.getEncoder().encodeToString(encbyt));
+
+    byte[] dcrbyt = AES256Cipher.decrypt(pwdtxt.toCharArray(),encbyt);
+    /**/System.out.println("decrypted text: " + new String(dcrbyt));
 
     // convert bytes to hex characters
     setStatusText("Converting encrypted bytes to hex...");

@@ -4,36 +4,22 @@
  * Date        : 07 Nov 2017
  * Origin OS   : Mac OS X 10.12.6
  * --------------------------------------------------------------------------
- * Copyright (c)  2017 Lowell List
+ * Copyright (c) 2017 Lowell List
  * -------------------------------------------------------------------------- */
 
-import java.security.AlgorithmParameters;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-
 import java.util.Base64;
 import java.util.Properties;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
-
-import java.security.NoSuchAlgorithmException ;
-import java.security.InvalidKeyException;
-import javax.crypto.IllegalBlockSizeException ;
-import javax.crypto.NoSuchPaddingException ;
-import java.security.InvalidAlgorithmParameterException ;
-import javax.crypto.BadPaddingException ;
-import javax.crypto.ShortBufferException;
-
-import java.util.Arrays ;
 
 public class AES256Cipher
 extends java.lang.Object
@@ -67,6 +53,7 @@ public AES256Cipher()
 /* STATIC PROPERTIES                                                      */
 /**************************************************************************/
 
+// misc settings
 private static String ALGO_TRANSFORMATION_STRING    = "AES/GCM/PKCS5Padding" ;        // AES algorithm, with AEAD/GCM mode, and PKCS5Padding padding
 private static int SALT_BYTE_LENGTH                 = 128;
 private static int DERIVED_KEY_LENGTH               = 256;                            // key length for AES
@@ -74,38 +61,39 @@ private static int ITERATION_COUNT                  = 65536;
 private static int IV_BYTE_LENGTH                   = 96;
 private static int TAG_BIT_LENGTH                   = 128;
 private static String ADDITIONAL_AUTHENTICATED_DATA = "AES256Cipher";                 // this plain text is packaged with the encrypted data and authenticated
-private static String CIPHER_NAME                   = "AES-256";
+private static String CIPHER_NAME                   = "AES-256";                      // name of the cipher used by this class
 
 // property names
-public static String PRPNAM_CIPHERTEXT              = "cipher_text";
-public static String PRPNAM_IV                      = "iv";
-public static String PRPNAM_AAD_DATA                = "aad_data";
-public static String PRPNAM_SALT                    = "salt";
 public static String PRPNAM_CIPHERNAME              = "cipher_name";
+public static String PRPNAM_AAD_DATA                = "aad_data";
+public static String PRPNAM_IV                      = "iv";
+public static String PRPNAM_SALT                    = "salt";
+public static String PRPNAM_ENCRYPTED_BYTES         = "encrypted_bytes";
 
 /**************************************************************************/
 /* STATIC METHODS - PUBLIC
 /**************************************************************************/
 
 /**
- * Encrypt the source bytes with the secret password and return the result as a Properties object with the following keys:
- *   PRPNAM_CIPHERTEXT - the encrypted bytes, in base 64
- *   PRPNAM_IV         - Initialization Vector bytes, in base 64
- *   PRPNAM_AAD_DATA   - additional authenticated data, plain text
- *   PRPNAM_SALT       - salt bytes used for encryption, in base 64
- *   PRPNAM_CIPHERNAME - name of the cipher, plain text
+ * Encrypt the message bytes with the secret password and return the result as a serialized
+ * Properties object that contains the following keys:
+ *   PRPNAM_CIPHERNAME      - name of the cipher, plain text
+ *   PRPNAM_AAD_DATA        - additional authenticated data, plain text
+ *   PRPNAM_IV              - Initialization Vector bytes, in base 64
+ *   PRPNAM_SALT            - salt bytes used for encryption, in base 64
+ *   PRPNAM_ENCRYPTED_BYTES - the encrypted bytes, in base 64
  *
  * @param password  secret password to use for encryption
- * @param source    source bytes to encrypt
- * @return new Properties object with all PRPNAM_ keys or null on error
+ * @param message   plain text message bytes to encrypt
+ * @return serialized Properties object as a byte array or null on error
 */
-public static Properties encrypt(char[] password, byte[] source)
+public static byte[] encrypt(char[] password, byte[] message)
 {
 	// local variables
-	byte[] cphtxt = null; // cipher text
-	byte[] slt    = null; // salt
-	byte[] inivct = null; // Initialization Vector
 	byte[] aaddta = null; // AAD data
+	byte[] inivct = null; // Initialization Vector
+	byte[] slt    = null; // salt
+	byte[] encbyt = null; // encrypted bytes
 
 	// encrypt
 	try {
@@ -117,12 +105,12 @@ public static Properties encrypt(char[] password, byte[] source)
 		// derive secret key from password and salt
 		SecretKey srtkey = deriveSecretKey(password, slt);
 
-		// encrypt source bytes
+		// encrypt message bytes
 		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(TAG_BIT_LENGTH, inivct);   // init GCM parameters
 		Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);                    // get cipher
 		cph.init(Cipher.ENCRYPT_MODE, srtkey, gcmParamSpec, new SecureRandom());        // init cipher
 		cph.updateAAD(aaddta);                                                          // add AAD tag data before encrypting
-		cphtxt = cph.doFinal(source);                                                   // encrypt
+		encbyt = cph.doFinal(message);                                                  // encrypt
 	}
 	catch(Exception e) {
 		System.out.println("there was a problem encrypting");
@@ -130,34 +118,59 @@ public static Properties encrypt(char[] password, byte[] source)
 		return null;
 	}
 
-	// create and return Properties
+	// create Properties
 	Properties prp = new Properties();
-	prp.setProperty(PRPNAM_CIPHERTEXT ,Base64.getEncoder().encodeToString(cphtxt));
-	prp.setProperty(PRPNAM_IV         ,Base64.getEncoder().encodeToString(inivct));
-	prp.setProperty(PRPNAM_AAD_DATA   ,ADDITIONAL_AUTHENTICATED_DATA);
-	prp.setProperty(PRPNAM_SALT       ,Base64.getEncoder().encodeToString(slt));
-	prp.setProperty(PRPNAM_CIPHERNAME ,CIPHER_NAME);
-	return prp;
+	prp.setProperty(PRPNAM_CIPHERNAME      ,CIPHER_NAME);
+	prp.setProperty(PRPNAM_AAD_DATA        ,ADDITIONAL_AUTHENTICATED_DATA);
+	prp.setProperty(PRPNAM_IV              ,Base64.getEncoder().encodeToString(inivct));
+	prp.setProperty(PRPNAM_SALT            ,Base64.getEncoder().encodeToString(slt));
+	prp.setProperty(PRPNAM_ENCRYPTED_BYTES ,Base64.getEncoder().encodeToString(encbyt));
+	/**/prp.list(System.out);
+
+	// serialize Properties
+	ByteArrayOutputStream bytoutstm = new ByteArrayOutputStream();
+	try { prp.store(bytoutstm,"envelope"); }
+	catch(Exception e) {
+		System.out.println("could not serialize Properties");
+		e.printStackTrace();
+		return null;
+	}
+
+	// return Properties as byte array
+	return bytoutstm.toByteArray();
 }
 
 /**
- * Decrypt the given ciphertext contained in the Properties object using the given password.
+ * Decrypt the given encrypted bytes contained in the serialized Properties object using the given password.
  * If an error occurs during decryption, the error is printed and null is returned.
  *
- * @param password    secret password to use for decryption
- * @param properties  Properties object which contains all expected PRPNAM_ keys, usually generated with the encrypt() method
- * @return new array of decrypted bytes or null on error
+ * @param password              secret password to use for decryption
+ * @param serializedProperties  serialized Properties object which contains all expected 
+ *                              PRPNAM_ keys, generated by the encrypt() method
+ * @return decrypted message bytes or null on error
  */
-public static byte[] decrypt(char[] password, Properties properties)
+public static byte[] decrypt(char[] password, byte[] serializedProperties)
 {
 	// decrypt
 	try {
+		// load Properties from byte array
+		ByteArrayInputStream bytinpstm = new ByteArrayInputStream(serializedProperties);
+		Properties prp = new Properties();
+		prp.load(bytinpstm);
+		/**/prp.list(System.out);
+
 		// extract data from Properties
-		byte[] cphtxt = Base64.getDecoder().decode(properties.getProperty(PRPNAM_CIPHERTEXT));
-		byte[] slt    = Base64.getDecoder().decode(properties.getProperty(PRPNAM_SALT));
-		byte[] inivct = Base64.getDecoder().decode(properties.getProperty(PRPNAM_IV));
-		byte[] aaddta = properties.getProperty(PRPNAM_AAD_DATA).getBytes("UTF-8");
-		String cphnam = properties.getProperty(PRPNAM_CIPHERNAME);
+		String cphnam = prp.getProperty(PRPNAM_CIPHERNAME);
+		byte[] aaddta = prp.getProperty(PRPNAM_AAD_DATA).getBytes("UTF-8");
+		byte[] inivct = Base64.getDecoder().decode(prp.getProperty(PRPNAM_IV));
+		byte[] slt    = Base64.getDecoder().decode(prp.getProperty(PRPNAM_SALT));
+		byte[] encbyt = Base64.getDecoder().decode(prp.getProperty(PRPNAM_ENCRYPTED_BYTES));
+
+		// ensure that authenticated data is unaltered
+		if(!prp.getProperty(PRPNAM_AAD_DATA).equals(ADDITIONAL_AUTHENTICATED_DATA)) {
+			System.out.println("unexpected authenticated data");
+			return null;
+		}
 
 		// derive secret key from password and salt
 		SecretKey srtkey = deriveSecretKey(password, slt);
@@ -167,7 +180,7 @@ public static byte[] decrypt(char[] password, Properties properties)
 		Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);                    // get cipher
 		cph.init(Cipher.DECRYPT_MODE, srtkey, gcmParamSpec, new SecureRandom());        // init cipher
 		cph.updateAAD(aaddta);                                                          // add AAD tag data before decrypting
-		return cph.doFinal(cphtxt);                                                     // decrypt
+		return cph.doFinal(encbyt);                                                     // decrypt
 	}
 	catch(Exception e) {
 		System.out.println("there was a problem decrypting");
