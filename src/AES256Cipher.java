@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import java.util.Base64;
+import java.util.Properties;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -58,96 +59,6 @@ public AES256Cipher()
 /* INSTANCE METHODS                                                       */
 /**************************************************************************/
 
-/**
- * Encrypt the source bytes and return the result as a new byte array.
- */
-public byte[] encrypt(char[] password, byte[] source)
-{
-	try {
-		// derive secret key from password and salt
-		SecretKey secretKey = deriveSecretKey(password, generateSalt());
-
-		// create IV
-		byte[] iv = generateIV();
-
-		// Initialize GCM Parameters
-		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(TAG_BIT_LENGTH, iv);
-
-		// authenticated data
-		byte[] aadData = ADDITIONAL_AUTHENTICATED_DATA.getBytes("UTF-8");
-
-		byte[] encryptedText = aesEncrypt("Hello world!", secretKey, gcmParamSpec, aadData) ;
-		System.out.println("Authenticated Data = " + Base64.getEncoder().encodeToString(aadData) ) ;
-		System.out.println("Encrypted Text = " + Base64.getEncoder().encodeToString(encryptedText) ) ;
-
-		byte[] decryptedText = aesDecrypt(encryptedText, secretKey, gcmParamSpec, aadData) ; // Same key, IV and GCM Specs for decryption as used for encryption.
-		System.out.println("Decrypted text " + new String(decryptedText)) ;
-
-		// Encrypt the message
-/*
-		// Cipher e_cipher = Cipher.getInstance("AES/GCM/PKCS5Padding"); // select AES algorithm, with AEAD/GCM mode, and PKCS5Padding padding
-		Cipher e_cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // select AES algorithm, with AEAD/GCM mode, and PKCS5Padding padding
-		e_cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-		AlgorithmParameters params = e_cipher.getParameters();
-		byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
-		byte[] ciphertext = e_cipher.doFinal("Hello, World!".getBytes("UTF-8"));
-
-		// Decrypt the message, given derived key and initialization vector.
-		Cipher d_cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		d_cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
-		String plaintext = new String(d_cipher.doFinal(ciphertext), "UTF-8");
-		System.out.println(plaintext);
-*/
-	}
-	catch(Exception e) {
-		System.out.println("oops: ");
-		e.printStackTrace();
-	}
-
-	return null;
-}
-
-/**
- * Derive secret key from password and salt.
- */
-private SecretKey deriveSecretKey(char[] password, byte[] salt) throws Exception
-{
-	PBEKeySpec keySpec = new PBEKeySpec(password, salt, ITERATION_COUNT, DERIVED_KEY_LENGTH);
-	SecretKeyFactory pbkdfKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-	return new SecretKeySpec(pbkdfKeyFactory.generateSecret(keySpec).getEncoded(), "AES"); // associate secret-key algorithm
-}
-
-/**
- * Generate and return a secure salt.
- */
-private byte[] generateSalt() throws NoSuchAlgorithmException
-{
-	byte[] salt = new byte[SALT_BYTE_LENGTH];
-	fillWithSecureRandomBytes(salt);
-	/**/System.out.println("generated salt: " + Base64.getEncoder().encodeToString(salt));
-	return salt;
-}
-
-/**
- * Generate and return an Initialization Vector (IV).
- */
-private byte[] generateIV() throws NoSuchAlgorithmException
-{
-	byte[] iv = new byte[IV_BYTE_LENGTH];
-	fillWithSecureRandomBytes(iv);
-	/**/System.out.println("generated iv: " + Base64.getEncoder().encodeToString(iv));
-	return iv;
-}
-
-/**
- * Fill the given byte array with secure random bytes.
- */
-private void fillWithSecureRandomBytes(byte[] array) throws NoSuchAlgorithmException
-{
-	SecureRandom secrnd = SecureRandom.getInstance("SHA1PRNG");
-	secrnd.nextBytes(array);
-}
-
 /**************************************************************************/
 /* INNER CLASSES                                                          */
 /**************************************************************************/
@@ -162,26 +73,150 @@ private static int DERIVED_KEY_LENGTH               = 256;                      
 private static int ITERATION_COUNT                  = 65536;
 private static int IV_BYTE_LENGTH                   = 96;
 private static int TAG_BIT_LENGTH                   = 128;
-private static String ADDITIONAL_AUTHENTICATED_DATA = "Lowell's AES256Cipher class";
+private static String ADDITIONAL_AUTHENTICATED_DATA = "AES256Cipher";                 // this plain text is packaged with the encrypted data and authenticated
+private static String CIPHER_NAME                   = "AES-256";
+
+// property names
+public static String PRPNAM_CIPHERTEXT              = "cipher_text";
+public static String PRPNAM_IV                      = "iv";
+public static String PRPNAM_AAD_DATA                = "aad_data";
+public static String PRPNAM_SALT                    = "salt";
+public static String PRPNAM_CIPHERNAME              = "cipher_name";
 
 /**************************************************************************/
-/* STATIC METHODS
+/* STATIC METHODS - PUBLIC
 /**************************************************************************/
 
-private static byte[] aesEncrypt(String message, SecretKey aesKey, GCMParameterSpec gcmParamSpec, byte[] aadData) throws Exception
+/**
+ * Encrypt the source bytes with the secret password and return the result as a Properties object with the following keys:
+ *   PRPNAM_CIPHERTEXT - the encrypted bytes, in base 64
+ *   PRPNAM_IV         - Initialization Vector bytes, in base 64
+ *   PRPNAM_AAD_DATA   - additional authenticated data, plain text
+ *   PRPNAM_SALT       - salt bytes used for encryption, in base 64
+ *   PRPNAM_CIPHERNAME - name of the cipher, plain text
+ *
+ * @param password  secret password to use for encryption
+ * @param source    source bytes to encrypt
+ * @return new Properties object with all PRPNAM_ keys or null on error
+*/
+public static Properties encrypt(char[] password, byte[] source)
 {
-	Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);
-	cph.init(Cipher.ENCRYPT_MODE, aesKey, gcmParamSpec, new SecureRandom());
-	cph.updateAAD(aadData); // add AAD tag data before encrypting
-	return cph.doFinal(message.getBytes());
+	// local variables
+	byte[] cphtxt = null; // cipher text
+	byte[] slt    = null; // salt
+	byte[] inivct = null; // Initialization Vector
+	byte[] aaddta = null; // AAD data
+
+	// encrypt
+	try {
+		// create salt, IV, and additional authenticated data
+		slt = generateSalt();
+		inivct = generateIV();
+		aaddta = ADDITIONAL_AUTHENTICATED_DATA.getBytes("UTF-8");
+
+		// derive secret key from password and salt
+		SecretKey srtkey = deriveSecretKey(password, slt);
+
+		// encrypt source bytes
+		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(TAG_BIT_LENGTH, inivct);   // init GCM parameters
+		Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);                    // get cipher
+		cph.init(Cipher.ENCRYPT_MODE, srtkey, gcmParamSpec, new SecureRandom());        // init cipher
+		cph.updateAAD(aaddta);                                                          // add AAD tag data before encrypting
+		cphtxt = cph.doFinal(source);                                                   // encrypt
+	}
+	catch(Exception e) {
+		System.out.println("there was a problem encrypting");
+		e.printStackTrace();
+		return null;
+	}
+
+	// create and return Properties
+	Properties prp = new Properties();
+	prp.setProperty(PRPNAM_CIPHERTEXT ,Base64.getEncoder().encodeToString(cphtxt));
+	prp.setProperty(PRPNAM_IV         ,Base64.getEncoder().encodeToString(inivct));
+	prp.setProperty(PRPNAM_AAD_DATA   ,ADDITIONAL_AUTHENTICATED_DATA);
+	prp.setProperty(PRPNAM_SALT       ,Base64.getEncoder().encodeToString(slt));
+	prp.setProperty(PRPNAM_CIPHERNAME ,CIPHER_NAME);
+	return prp;
 }
 
-private static byte[] aesDecrypt(byte[] encryptedMessage, SecretKey aesKey, GCMParameterSpec gcmParamSpec, byte[] aadData) throws Exception
+/**
+ * Decrypt the given ciphertext contained in the Properties object using the given password.
+ * If an error occurs during decryption, the error is printed and null is returned.
+ *
+ * @param password    secret password to use for decryption
+ * @param properties  Properties object which contains all expected PRPNAM_ keys, usually generated with the encrypt() method
+ * @return new array of decrypted bytes or null on error
+ */
+public static byte[] decrypt(char[] password, Properties properties)
 {
-	Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);
-	cph.init(Cipher.DECRYPT_MODE, aesKey, gcmParamSpec, new SecureRandom());
-	cph.updateAAD(aadData) ; // Add AAD details before decrypting
-	return cph.doFinal(encryptedMessage);
+	// decrypt
+	try {
+		// extract data from Properties
+		byte[] cphtxt = Base64.getDecoder().decode(properties.getProperty(PRPNAM_CIPHERTEXT));
+		byte[] slt    = Base64.getDecoder().decode(properties.getProperty(PRPNAM_SALT));
+		byte[] inivct = Base64.getDecoder().decode(properties.getProperty(PRPNAM_IV));
+		byte[] aaddta = properties.getProperty(PRPNAM_AAD_DATA).getBytes("UTF-8");
+		String cphnam = properties.getProperty(PRPNAM_CIPHERNAME);
+
+		// derive secret key from password and salt
+		SecretKey srtkey = deriveSecretKey(password, slt);
+
+		// decrypt ciphertext
+		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(TAG_BIT_LENGTH, inivct);   // init GCM parameters
+		Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);                    // get cipher
+		cph.init(Cipher.DECRYPT_MODE, srtkey, gcmParamSpec, new SecureRandom());        // init cipher
+		cph.updateAAD(aaddta);                                                          // add AAD tag data before decrypting
+		return cph.doFinal(cphtxt);                                                     // decrypt
+	}
+	catch(Exception e) {
+		System.out.println("there was a problem decrypting");
+		e.printStackTrace();
+	}
+	return null;
+}
+
+/**************************************************************************/
+/* STATIC METHODS - PRIVATE
+/**************************************************************************/
+
+/**
+ * Derive secret key from password and salt.
+ */
+private static SecretKey deriveSecretKey(char[] password, byte[] salt) throws Exception
+{
+	PBEKeySpec keySpec = new PBEKeySpec(password, salt, ITERATION_COUNT, DERIVED_KEY_LENGTH);
+	SecretKeyFactory pbkdfKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+	return new SecretKeySpec(pbkdfKeyFactory.generateSecret(keySpec).getEncoded(), "AES"); // associate secret-key algorithm
+}
+
+/**
+ * Generate and return a secure salt.
+ */
+private static byte[] generateSalt() throws NoSuchAlgorithmException
+{
+	byte[] salt = new byte[SALT_BYTE_LENGTH];
+	fillWithSecureRandomBytes(salt);
+	return salt;
+}
+
+/**
+ * Generate and return an Initialization Vector (IV).
+ */
+private static byte[] generateIV() throws NoSuchAlgorithmException
+{
+	byte[] iv = new byte[IV_BYTE_LENGTH];
+	fillWithSecureRandomBytes(iv);
+	return iv;
+}
+
+/**
+ * Fill the given byte array with secure random bytes.
+ */
+private static void fillWithSecureRandomBytes(byte[] array) throws NoSuchAlgorithmException
+{
+	SecureRandom secrnd = SecureRandom.getInstance("SHA1PRNG");
+	secrnd.nextBytes(array);
 }
 
 /**************************************************************************/
