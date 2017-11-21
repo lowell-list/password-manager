@@ -368,6 +368,7 @@ private void onEncryptButtonAction(ActionEvent evt) {
     String         pwdtxt;             // password text
     byte[]         wndbyt;             // window bytes
     byte[]         pwdbyt;             // password bytes
+    byte[]         revpwdbyt;          // reversed password bytes
     RC4Cipher      rc4cph;             // RC4 cipher
     AES256Cipher   aes256cph;          // AES 256 cipher
     String         utfstr;             // UTF8 string
@@ -384,6 +385,7 @@ private void onEncryptButtonAction(ActionEvent evt) {
     try {
         wndbyt=wndtxt.getBytes(ENCODING);
         pwdbyt=pwdtxt.getBytes(ENCODING);
+        revpwdbyt=(new StringBuilder(pwdtxt)).reverse().toString().getBytes(ENCODING);
         }
     catch(UnsupportedEncodingException exp) {
         setStatusText(formatThrowable(exp));
@@ -393,21 +395,19 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     setStatusText("Encrypting ("+wndbyt.length+") bytes...");
 
-    // first encrypt the window bytes using the RC4 cipher
+    // encrypt
     rc4cph=new RC4Cipher(pwdbyt);
-    rc4cph.encrypt(wndbyt,wndbyt);
+    rc4cph.encrypt(wndbyt,wndbyt);                                          // 1) encrypt content with RC4 (no length change)
+    byte[] encbyt = AES256Cipher.encrypt(pwdtxt.toCharArray(),wndbyt);      // 2) encrypt with AES-256 (length change)
+    rc4cph=new RC4Cipher(revpwdbyt);
+    rc4cph.encrypt(encbyt,encbyt);                                          // 3) encrypt result with RC4, but with reverse pwd
 
-    // final encrypt with AES-256
-    /**/System.out.println("original text: " + new String(wndbyt));
-    byte[] encbyt = AES256Cipher.encrypt(pwdtxt.toCharArray(),wndbyt);
-    /**/System.out.println(Base64.getEncoder().encodeToString(encbyt));
-
-    byte[] dcrbyt = AES256Cipher.decrypt(pwdtxt.toCharArray(),encbyt);
-    /**/System.out.println("decrypted text: " + new String(dcrbyt));
+    // byte[] dcrbyt = AES256Cipher.decrypt(pwdtxt.toCharArray(),encbyt);
+    // /**/System.out.println("decrypted text: " + new String(dcrbyt));
 
     // convert bytes to hex characters
-    setStatusText("Converting encrypted bytes to hex...");
-    mMainTextArea.setText(getHexString(wndbyt));
+    setStatusText("Converting encrypted bytes to base 64...");
+    mMainTextArea.setText(Base64.getEncoder().encodeToString(encbyt));
 
     // done
     enableControls(true);
