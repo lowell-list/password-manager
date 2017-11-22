@@ -99,6 +99,11 @@ public void init() {
         public void keyPressed(KeyEvent evt) {}
         public void keyReleased(KeyEvent evt) { onSearchTextKeyReleased(evt); }
     });
+    mPasswordTextField.addKeyListener(new KeyListener() {
+        public void keyTyped(KeyEvent evt) {}
+        public void keyPressed(KeyEvent evt) {}
+        public void keyReleased(KeyEvent evt) { onPasswordTextKeyReleased(evt); }
+    });
     mEncryptButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onEncryptButtonAction(evt); }
     });
@@ -307,6 +312,13 @@ private void searchAndSelect(int startIndex, int direction) {
 /* INSTANCE METHODS - ENCRYPTION/DECRYPTION                               */
 /**************************************************************************/
 
+private void onPasswordTextKeyReleased(KeyEvent evt) {
+    if(evt.getKeyCode()==KeyEvent.VK_ENTER && mPasswordTextField.getText().length()>0) {
+        // trigger decrypt
+        onDecryptButtonAction(null);
+        }
+    }
+
 private void onDecryptButtonAction(ActionEvent evt) {
     String         wndtxt;             // window text
     String         pwdtxt;             // password text
@@ -335,7 +347,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
     // done
     enableControls(true);
     mMainTextArea.setCaretPosition(0);
-    mMainTextArea.requestFocus();
+    mSearchTextField.requestFocus();
     setStatusText("Decrypted ("+dcrstr.length()+") characters.");
     }
 
