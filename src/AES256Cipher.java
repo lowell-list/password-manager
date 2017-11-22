@@ -60,6 +60,7 @@ private static int DERIVED_KEY_LENGTH               = 256;                      
 private static int ITERATION_COUNT                  = 65536;
 private static int IV_BYTE_LENGTH                   = 96;
 private static int TAG_BIT_LENGTH                   = 128;
+private static int RANDOM_HEADER_BYTE_LENGTH        = 4;
 private static String ADDITIONAL_AUTHENTICATED_DATA = "AES256Cipher";                 // this plain text is packaged with the encrypted data and authenticated
 private static String CIPHER_NAME                   = "AES-256";                      // name of the cipher used by this class
 
@@ -94,6 +95,7 @@ public static byte[] encrypt(char[] password, byte[] message)
 	byte[] inivct = null; // Initialization Vector
 	byte[] slt    = null; // salt
 	byte[] encbyt = null; // encrypted bytes
+	byte[] rndbyt = null; // random header bytes
 
 	// encrypt
 	try {
@@ -101,6 +103,8 @@ public static byte[] encrypt(char[] password, byte[] message)
 		slt = generateSalt();
 		inivct = generateIV();
 		aaddta = ADDITIONAL_AUTHENTICATED_DATA.getBytes("UTF-8");
+		rndbyt = new byte[RANDOM_HEADER_BYTE_LENGTH];
+		fillWithSecureRandomBytes(rndbyt);
 
 		// derive secret key from password and salt
 		SecretKey srtkey = deriveSecretKey(password, slt);
@@ -125,11 +129,13 @@ public static byte[] encrypt(char[] password, byte[] message)
 	prp.setProperty(PRPNAM_IV              ,Base64.getEncoder().encodeToString(inivct));
 	prp.setProperty(PRPNAM_SALT            ,Base64.getEncoder().encodeToString(slt));
 	prp.setProperty(PRPNAM_ENCRYPTED_BYTES ,Base64.getEncoder().encodeToString(encbyt));
-	/**/prp.list(System.out);
 
 	// serialize Properties
 	ByteArrayOutputStream bytoutstm = new ByteArrayOutputStream();
-	try { prp.store(bytoutstm,"envelope"); }
+	try {
+		bytoutstm.write(rndbyt); // first, write some random bytes
+		prp.store(bytoutstm,"envelope");
+	}
 	catch(Exception e) {
 		System.out.println("could not serialize Properties");
 		e.printStackTrace();
@@ -154,10 +160,10 @@ public static byte[] decrypt(char[] password, byte[] serializedProperties)
 	// decrypt
 	try {
 		// load Properties from byte array
-		ByteArrayInputStream bytinpstm = new ByteArrayInputStream(serializedProperties);
+		ByteArrayInputStream bytinpstm =
+			new ByteArrayInputStream(serializedProperties,RANDOM_HEADER_BYTE_LENGTH,serializedProperties.length-RANDOM_HEADER_BYTE_LENGTH);
 		Properties prp = new Properties();
 		prp.load(bytinpstm);
-		/**/prp.list(System.out);
 
 		// extract data from Properties
 		String cphnam = prp.getProperty(PRPNAM_CIPHERNAME);

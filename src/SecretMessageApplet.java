@@ -310,10 +310,7 @@ private void searchAndSelect(int startIndex, int direction) {
 private void onDecryptButtonAction(ActionEvent evt) {
     String         wndtxt;             // window text
     String         pwdtxt;             // password text
-    byte[]         pwdbyt;             // password bytes
-    byte[]         bytbuf;             // byte buffer
-    RC4Cipher      rc4cph;             // RC4 cipher
-    String         decstr;             // decrypted String
+    String         dcrstr;             // decrypted String
 
     // get window and password text
     enableControls(false);
@@ -322,35 +319,13 @@ private void onDecryptButtonAction(ActionEvent evt) {
     pwdtxt=mPasswordTextField.getText();
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
 
-    // convert password to bytes
-    setStatusText("Converting password to bytes...");
+    // decrypt
+    setStatusText("Decrypting...");
     try {
-        pwdbyt=pwdtxt.getBytes(ENCODING);
+        dcrstr=decrypt(pwdtxt,wndtxt);
+        mMainTextArea.setText(dcrstr);
         }
-    catch(UnsupportedEncodingException exp) {
-        setStatusText(formatThrowable(exp));
-        enableControls(true);
-        return;
-        }
-
-    // convert hex characters to byte array
-    if((bytbuf=getBytesFromHexString(wndtxt))==null) {
-        // note: error message already set
-        enableControls(true);
-        return;
-        }
-
-    // decrypt the bytes using the RC4 cipher
-    setStatusText("Decrypting ("+bytbuf.length+") bytes...");
-    rc4cph=new RC4Cipher(pwdbyt);
-    rc4cph.decrypt(bytbuf,bytbuf);
-
-    // create the final string from the decrypted bytes
-    setStatusText("Converting decrypted bytes to a string...");
-    try {
-        mMainTextArea.setText(new String(bytbuf,ENCODING));
-        }
-    catch(UnsupportedEncodingException exp) {
+    catch(Exception exp) {
         setStatusText(formatThrowable(exp));
         enableControls(true);
         return;
@@ -360,18 +335,12 @@ private void onDecryptButtonAction(ActionEvent evt) {
     enableControls(true);
     mMainTextArea.setCaretPosition(0);
     mMainTextArea.requestFocus();
-    setStatusText("Decrypted ("+bytbuf.length+") bytes.");
+    setStatusText("Decrypted ("+dcrstr.length()+") characters.");
     }
 
 private void onEncryptButtonAction(ActionEvent evt) {
     String         wndtxt;             // window text
     String         pwdtxt;             // password text
-    byte[]         wndbyt;             // window bytes
-    byte[]         pwdbyt;             // password bytes
-    byte[]         revpwdbyt;          // reversed password bytes
-    RC4Cipher      rc4cph;             // RC4 cipher
-    AES256Cipher   aes256cph;          // AES 256 cipher
-    String         utfstr;             // UTF8 string
 
     // get window and password text
     enableControls(false);
@@ -380,40 +349,23 @@ private void onEncryptButtonAction(ActionEvent evt) {
     pwdtxt=mPasswordTextField.getText();
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
 
-    // convert window text and password to bytes
-    setStatusText("Converting to "+ENCODING+" bytes...");
+    // encrypt
+    setStatusText("Encrypting...");
     try {
-        wndbyt=wndtxt.getBytes(ENCODING);
-        pwdbyt=pwdtxt.getBytes(ENCODING);
-        revpwdbyt=(new StringBuilder(pwdtxt)).reverse().toString().getBytes(ENCODING);
+        String cphtxt = encrypt(pwdtxt,wndtxt);
+        mMainTextArea.setText(cphtxt);
         }
-    catch(UnsupportedEncodingException exp) {
+    catch(Exception exp) {
         setStatusText(formatThrowable(exp));
         enableControls(true);
         return;
         }
 
-    setStatusText("Encrypting ("+wndbyt.length+") bytes...");
-
-    // encrypt
-    rc4cph=new RC4Cipher(pwdbyt);
-    rc4cph.encrypt(wndbyt,wndbyt);                                          // 1) encrypt content with RC4 (no length change)
-    byte[] encbyt = AES256Cipher.encrypt(pwdtxt.toCharArray(),wndbyt);      // 2) encrypt with AES-256 (length change)
-    rc4cph=new RC4Cipher(revpwdbyt);
-    rc4cph.encrypt(encbyt,encbyt);                                          // 3) encrypt result with RC4, but with reverse pwd
-
-    // byte[] dcrbyt = AES256Cipher.decrypt(pwdtxt.toCharArray(),encbyt);
-    // /**/System.out.println("decrypted text: " + new String(dcrbyt));
-
-    // convert bytes to hex characters
-    setStatusText("Converting encrypted bytes to base 64...");
-    mMainTextArea.setText(Base64.getEncoder().encodeToString(encbyt));
-
     // done
     enableControls(true);
     mMainTextArea.setCaretPosition(0);
     mMainTextArea.requestFocus();
-    setStatusText("Encrypted ("+wndbyt.length+") bytes.");
+    setStatusText("Encrypted ("+wndtxt.length()+") characters.");
     }
 
 private void onSaveButtonAction(ActionEvent evt) {
@@ -443,7 +395,7 @@ private void onSaveButtonAction(ActionEvent evt) {
             }
         
         // delete and rename
-        if(filbak.exists()) { filbak.delete(); }        
+        if(filbak.exists()) { filbak.delete(); }
         filpwd.renameTo(filbak);
         
         // write the new file contents
@@ -464,63 +416,67 @@ private void onSaveButtonAction(ActionEvent evt) {
     System.exit(0);
     }
 
-private String getHexString(byte[] bytbuf) {
-    char[]         hexchr={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-    char[]         chrbuf;             // data as hex
+/**
+ * Given a password and plain text, returns encrypted text (RC4/AES-256 combo).
+ */
+private String encrypt(String password, String plainText) throws Exception
+{
+    byte[]         pwdbyt;             // password bytes
+    byte[]         revpwdbyt;          // reverse password bytes
+    byte[]         txtbyt;             // plain text bytes
+    byte[]         encbyt;             // encrypted bytes
+    RC4Cipher      rc4cph;             // RC4 cipher
 
-    chrbuf=new char[bytbuf.length*2];
-    for(int bi=0,ci=0; bi<bytbuf.length; bi++,ci+=2) {
-        chrbuf[ci  ]=hexchr[(bytbuf[bi]&0x00F0)>>>4 ];
-        chrbuf[ci+1]=hexchr[(bytbuf[bi]&0x000F)     ];
-        }
-    return new String(chrbuf);
-    }
+    // convert password and plain text to bytes
+    pwdbyt=password.getBytes(ENCODING);
+    revpwdbyt=(new StringBuilder(password)).reverse().toString().getBytes(ENCODING);
+    txtbyt=plainText.getBytes(ENCODING);
 
-private byte[] getBytesFromHexString(String wndtxt) {
-    byte[]         bytbuf;             // byte buffer
-    char[]         chrbuf;             // char buffer
+    // 1) encrypt plain text with RC4 (no length change)
+    rc4cph=new RC4Cipher(pwdbyt);
+    rc4cph.encrypt(txtbyt,txtbyt);
 
-    if((wndtxt.length()%2)!=0) {
-        setStatusText("Invalid hex string length (must be even).");
-        return null;
-        }
-    chrbuf=wndtxt.toCharArray();
-    bytbuf=new byte[chrbuf.length/2];
-    for(int bi=0,ci=0; bi<bytbuf.length; bi++,ci+=2) {
-        try {
-            bytbuf[bi]=(byte) ( (getHexDigitValue(chrbuf[ci])<<4)+getHexDigitValue(chrbuf[ci+1]) );
-            }
-        catch(Exception exp) {
-            setStatusText(formatThrowable(exp));
-            return null;
-            }
-        }
-    return bytbuf;
-    }
+    // 2) encrypt with AES-256 (length change)
+    encbyt = AES256Cipher.encrypt(password.toCharArray(),txtbyt);
 
-private int getHexDigitValue(char hexdgt) throws Exception {
-    switch(hexdgt) {
-        case '0': { return 0;  }
-        case '1': { return 1;  }
-        case '2': { return 2;  }
-        case '3': { return 3;  }
-        case '4': { return 4;  }
-        case '5': { return 5;  }
-        case '6': { return 6;  }
-        case '7': { return 7;  }
-        case '8': { return 8;  }
-        case '9': { return 9;  }
-        case 'A': { return 10; }
-        case 'B': { return 11; }
-        case 'C': { return 12; }
-        case 'D': { return 13; }
-        case 'E': { return 14; }
-        case 'F': { return 15; }
-        default:  {
-            throw new Exception("Invalid hex character: ["+hexdgt+"]");
-            }
-        }
-    }
+    // 3) encrypt result with RC4 (just to obfuscate AES-256 properties), this time with reverse password
+    rc4cph=new RC4Cipher(revpwdbyt);
+    rc4cph.encrypt(encbyt,encbyt);
+
+    // convert encrypted bytes to base 64 String
+    return Base64.getEncoder().encodeToString(encbyt);
+}
+
+/**
+ * Given a password and cipher text (RC4/AES-256 combo), returns plain text.
+ */
+private String decrypt(String password, String cipherText) throws Exception
+{
+    byte[]         pwdbyt;             // password bytes
+    byte[]         revpwdbyt;          // reverse password bytes
+    byte[]         cphbyt;             // cipher text bytes
+    byte[]         dcrbyt;             // decrypted bytes
+    RC4Cipher      rc4cph;             // RC4 cipher
+
+    // convert password and cipher text to bytes
+    pwdbyt=password.getBytes(ENCODING);
+    revpwdbyt=(new StringBuilder(password)).reverse().toString().getBytes(ENCODING);
+    cphbyt=Base64.getDecoder().decode(cipherText);
+
+    // 1) RC4 decrypt, with reverse password
+    rc4cph=new RC4Cipher(revpwdbyt);
+    rc4cph.decrypt(cphbyt,cphbyt);
+
+    // 2) AES-256 decrypt
+    dcrbyt=AES256Cipher.decrypt(password.toCharArray(),cphbyt);
+
+    // 3) RC4 decrypt
+    rc4cph=new RC4Cipher(pwdbyt);
+    rc4cph.decrypt(dcrbyt,dcrbyt);
+
+    // return
+    return new String(dcrbyt,ENCODING);
+}
 
 /**************************************************************************/
 /* INNER CLASSES                                                          */
