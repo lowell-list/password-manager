@@ -326,7 +326,8 @@ private void onDecryptButtonAction(ActionEvent evt) {
         mMainTextArea.setText(dcrstr);
         }
     catch(Exception exp) {
-        setStatusText(formatThrowable(exp));
+        setStatusText("Could not decrypt.");
+        exp.printStackTrace();
         enableControls(true);
         return;
         }
@@ -356,7 +357,8 @@ private void onEncryptButtonAction(ActionEvent evt) {
         mMainTextArea.setText(cphtxt);
         }
     catch(Exception exp) {
-        setStatusText(formatThrowable(exp));
+        setStatusText("Could not encrypt.");
+        exp.printStackTrace();
         enableControls(true);
         return;
         }
