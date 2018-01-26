@@ -436,14 +436,12 @@ private void onSaveButtonAction(ActionEvent evt) {
 private String encrypt(String password, String plainText) throws Exception
 {
     byte[]         pwdbyt;             // password bytes
-    byte[]         revpwdbyt;          // reverse password bytes
     byte[]         txtbyt;             // plain text bytes
     byte[]         encbyt;             // encrypted bytes
     RC4Cipher      rc4cph;             // RC4 cipher
 
     // convert password and plain text to bytes
     pwdbyt=password.getBytes(ENCODING);
-    revpwdbyt=(new StringBuilder(password)).reverse().toString().getBytes(ENCODING);
     txtbyt=plainText.getBytes(ENCODING);
 
     // 1) encrypt plain text with RC4 (no length change)
@@ -453,8 +451,8 @@ private String encrypt(String password, String plainText) throws Exception
     // 2) encrypt with AES-256 (length change)
     encbyt = AES256Cipher.encrypt(password.toCharArray(),txtbyt);
 
-    // 3) encrypt result with RC4 (just to obfuscate AES-256 properties), this time with reverse password
-    rc4cph=new RC4Cipher(revpwdbyt);
+    // 3) obfuscate AES-256 properties with RC4 and hardcoded password
+    rc4cph=new RC4Cipher(OBFUSCATE_PASSWORD.getBytes(ENCODING));
     rc4cph.encrypt(encbyt,encbyt);
 
     // convert encrypted bytes to base 64 String
@@ -467,18 +465,16 @@ private String encrypt(String password, String plainText) throws Exception
 private String decrypt(String password, String cipherText) throws Exception
 {
     byte[]         pwdbyt;             // password bytes
-    byte[]         revpwdbyt;          // reverse password bytes
     byte[]         cphbyt;             // cipher text bytes
     byte[]         dcrbyt;             // decrypted bytes
     RC4Cipher      rc4cph;             // RC4 cipher
 
     // convert password and cipher text to bytes
     pwdbyt=password.getBytes(ENCODING);
-    revpwdbyt=(new StringBuilder(password)).reverse().toString().getBytes(ENCODING);
     cphbyt=Base64.getDecoder().decode(cipherText);
 
-    // 1) RC4 decrypt, with reverse password
-    rc4cph=new RC4Cipher(revpwdbyt);
+    // 1) de-obfuscate AES-256 properties with RC4 and hardcoded password
+    rc4cph=new RC4Cipher(OBFUSCATE_PASSWORD.getBytes(ENCODING));
     rc4cph.decrypt(cphbyt,cphbyt);
 
     // 2) AES-256 decrypt
@@ -505,6 +501,7 @@ private static final String            PRPNAM_PWDFILPTH="pwdfilpth";           /
 private static final String            ENCODING="UTF8";
 private static final int               SEARCH_DIRECTION_FORWARD=1;
 private static final int               SEARCH_DIRECTION_BACKWARD=2;
+private static final String            OBFUSCATE_PASSWORD="obfuscate";
 
 /**************************************************************************/
 /* STATIC INIT & MAIN                                                     */
