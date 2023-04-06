@@ -17,7 +17,7 @@ import java.util.Properties;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -54,12 +54,11 @@ public AES256Cipher()
 /**************************************************************************/
 
 // misc settings
-private static String ALGO_TRANSFORMATION_STRING    = "AES/GCM/PKCS5Padding" ;        // AES algorithm, with AEAD/GCM mode, and PKCS5Padding padding
+private static String ALGO_TRANSFORMATION_STRING    = "AES/CBC/PKCS5Padding" ;        // AES algorithm, with CBC mode, and PKCS5Padding padding
 private static int SALT_BYTE_LENGTH                 = 128;
 private static int DERIVED_KEY_LENGTH               = 256;                            // key length for AES
 private static int ITERATION_COUNT                  = 65536;
-private static int IV_BYTE_LENGTH                   = 96;
-private static int TAG_BIT_LENGTH                   = 128;
+private static int IV_BYTE_LENGTH                   = 16;
 private static int RANDOM_HEADER_BYTE_LENGTH        = 4;
 private static String ADDITIONAL_AUTHENTICATED_DATA = "AES256Cipher";                 // this plain text is packaged with the encrypted data and authenticated
 private static String CIPHER_NAME                   = "AES-256";                      // name of the cipher used by this class
@@ -91,7 +90,6 @@ public static String PRPNAM_ENCRYPTED_BYTES         = "encrypted_bytes";
 public static byte[] encrypt(char[] password, byte[] message)
 {
 	// local variables
-	byte[] aaddta = null; // AAD data
 	byte[] inivct = null; // Initialization Vector
 	byte[] slt    = null; // salt
 	byte[] encbyt = null; // encrypted bytes
@@ -102,7 +100,6 @@ public static byte[] encrypt(char[] password, byte[] message)
 		// create salt, IV, and additional authenticated data
 		slt = generateSalt();
 		inivct = generateIV();
-		aaddta = ADDITIONAL_AUTHENTICATED_DATA.getBytes("UTF-8");
 		rndbyt = new byte[RANDOM_HEADER_BYTE_LENGTH];
 		fillWithSecureRandomBytes(rndbyt);
 
@@ -110,10 +107,9 @@ public static byte[] encrypt(char[] password, byte[] message)
 		SecretKey srtkey = deriveSecretKey(password, slt);
 
 		// encrypt message bytes
-		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(TAG_BIT_LENGTH, inivct);   // init GCM parameters
+		IvParameterSpec iv = new IvParameterSpec(inivct);                               // create IV
 		Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);                    // get cipher
-		cph.init(Cipher.ENCRYPT_MODE, srtkey, gcmParamSpec, new SecureRandom());        // init cipher
-		cph.updateAAD(aaddta);                                                          // add AAD tag data before encrypting
+		cph.init(Cipher.ENCRYPT_MODE, srtkey, iv);                                      // initialize cipher
 		encbyt = cph.doFinal(message);                                                  // encrypt
 	}
 	catch(Exception e) {
@@ -166,8 +162,6 @@ public static byte[] decrypt(char[] password, byte[] serializedProperties)
 		prp.load(bytinpstm);
 
 		// extract data from Properties
-		String cphnam = prp.getProperty(PRPNAM_CIPHERNAME);
-		byte[] aaddta = prp.getProperty(PRPNAM_AAD_DATA).getBytes("UTF-8");
 		byte[] inivct = Base64.getDecoder().decode(prp.getProperty(PRPNAM_IV));
 		byte[] slt    = Base64.getDecoder().decode(prp.getProperty(PRPNAM_SALT));
 		byte[] encbyt = Base64.getDecoder().decode(prp.getProperty(PRPNAM_ENCRYPTED_BYTES));
@@ -182,10 +176,9 @@ public static byte[] decrypt(char[] password, byte[] serializedProperties)
 		SecretKey srtkey = deriveSecretKey(password, slt);
 
 		// decrypt ciphertext
-		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(TAG_BIT_LENGTH, inivct);   // init GCM parameters
+		IvParameterSpec iv = new IvParameterSpec(inivct);                               // create IV
 		Cipher cph = Cipher.getInstance(ALGO_TRANSFORMATION_STRING);                    // get cipher
-		cph.init(Cipher.DECRYPT_MODE, srtkey, gcmParamSpec, new SecureRandom());        // init cipher
-		cph.updateAAD(aaddta);                                                          // add AAD tag data before decrypting
+		cph.init(Cipher.DECRYPT_MODE, srtkey, iv);                                      // initialize cipher
 		return cph.doFinal(encbyt);                                                     // decrypt
 	}
 	catch(Exception e) {
