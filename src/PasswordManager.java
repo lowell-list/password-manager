@@ -4,11 +4,10 @@
  * Date        : 27 Dec 2008
  * Origin OS   : Windows XP
  * --------------------------------------------------------------------------
- * Copyright (c)  2008 Lowell List
+ * Copyright (c) 2008 Lowell List
  * -------------------------------------------------------------------------- */
 
 import java.awt.*;
-import java.awt.event.*;
 
 public class PasswordManager
 extends java.lang.Object
