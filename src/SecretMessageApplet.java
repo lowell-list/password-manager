@@ -13,6 +13,7 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import com.google.gson.Gson;
 
 public class SecretMessageApplet
 extends java.applet.Applet
@@ -124,6 +125,9 @@ public void init() {
     tmptxt=loadPasswordFileContents();
     if(tmptxt!=null) { mMainTextArea.setText(tmptxt); }
     
+    // JSON experimentation
+    parseJson(tmptxt);
+
     // set focus to the password input box
     mPasswordTextField.requestFocus();
 
@@ -178,6 +182,27 @@ private void enableControls(boolean flg) {
 private String formatThrowable(Throwable thr) {
     return thr.getClass().getName()+" : "+thr.getMessage();
     }
+
+/**************************************************************************/
+/* INSTANCE METHODS - JSON PARSING                                        */
+/**************************************************************************/
+
+class BagOfPrimitives {
+    private int value1 = 1;
+    private String value2 = "abc";
+    private transient int value3 = 3;
+    BagOfPrimitives() {
+      // no-args constructor
+    }
+  }
+
+private void parseJson(String text) {
+    Gson gson = new Gson();
+    BagOfPrimitives bag = gson.fromJson(text,BagOfPrimitives.class);
+    System.out.println(bag);
+}
+
+
 
 /**************************************************************************/
 /* INSTANCE METHODS - TREE                                                */
