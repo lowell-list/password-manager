@@ -187,23 +187,25 @@ private String formatThrowable(Throwable thr) {
 /* INSTANCE METHODS - JSON PARSING                                        */
 /**************************************************************************/
 
-class BagOfPrimitives {
-    private String title = "abc";
-    private String user = "abc";
-    private String pass = "abc";
-    BagOfPrimitives() {
-      // no-args constructor
-    }
+class PasswordItem {
+    private String ttl = ""; // title
+    private String usr = ""; // username
+    private String pwd = ""; // password
+    private String nts = ""; // notes
+    private PasswordItem[] cld = null; // children
+    PasswordItem() {} // no-args constructor
   }
 
 private void parseJson(String text) {
+    // input
     System.out.println(text);
     Gson gson = new Gson();
-    BagOfPrimitives[] bags = gson.fromJson(text,BagOfPrimitives[].class);
-    System.out.println(bags[0]);
-    System.out.println(bags[0].title);
+    PasswordItem[] itms = gson.fromJson(text,PasswordItem[].class);
+    System.out.println(itms[0]);
+    System.out.println(itms[0].ttl);
 
-    String output = gson.toJson(bags);
+    // output
+    String output = gson.toJson(itms);
     System.out.println(output);
 }
 
