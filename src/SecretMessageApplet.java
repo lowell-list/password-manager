@@ -9,10 +9,10 @@
 
 import java.awt.*;
 import java.awt.event.*;
-import java.applet.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class SecretMessageApplet
 extends java.applet.Applet
@@ -31,6 +31,7 @@ private Button               mEncryptButton;
 private Button               mDecryptButton;
 private Button               mSaveAndCloseButton;
 private Label                mStatusLabel;
+private JTree                mTree;
 
 private boolean              mInitialized=false;
 private Properties           mProperties=null;
@@ -65,6 +66,7 @@ public void init() {
     mDecryptButton=new Button();
     mSaveAndCloseButton=new Button();
     mStatusLabel=new Label();
+    mTree=new JTree();
 
     // setup components
     mSearchLabel.setText("Search");
@@ -86,6 +88,7 @@ public void init() {
     this.add(mDecryptButton);
     this.add(mSaveAndCloseButton);
     this.add(mStatusLabel);
+    this.add(mTree);
 
     // add listeners
     this.addComponentListener(new ComponentListener() {
@@ -147,7 +150,8 @@ public void onMainComponentResized(ComponentEvent evt) {
 
     mSearchLabel.setBounds(5,5,Math.max(mSearchLabel.getPreferredSize().width,70),20);
     mSearchTextField.setBounds(5+mSearchLabel.getSize().width+10,5,wth-5-mSearchLabel.getSize().width-10-5,20);
-    mMainTextArea.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
+    // mMainTextArea.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
+    mTree.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
     mEncryptButton.setBounds(wth-150,hgt-50,70,20);
     mDecryptButton.setBounds(wth-75,hgt-50,70,20);
     mStatusLabel.setBounds(5,hgt-25,wth-160,20);
@@ -174,7 +178,23 @@ private void enableControls(boolean flg) {
 private String formatThrowable(Throwable thr) {
     return thr.getClass().getName()+" : "+thr.getMessage();
     }
-    
+
+/**************************************************************************/
+/* INSTANCE METHODS - TREE                                                */
+/**************************************************************************/
+
+private DefaultMutableTreeNode buildTestTree() {
+    //create the root node
+    DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
+    //create the child nodes
+    DefaultMutableTreeNode vegetableNode = new DefaultMutableTreeNode("Vegetables");
+    DefaultMutableTreeNode fruitNode = new DefaultMutableTreeNode("Fruits");
+    //add the child nodes to the root node
+    root.add(vegetableNode);
+    root.add(fruitNode);
+    return root;
+    }
+
 /**************************************************************************/
 /* INSTANCE METHODS - FILE IO                                             */
 /**************************************************************************/
