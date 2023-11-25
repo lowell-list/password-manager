@@ -188,21 +188,24 @@ private String formatThrowable(Throwable thr) {
 /**************************************************************************/
 
 class BagOfPrimitives {
-    private int value1 = 1;
-    private String value2 = "abc";
-    private transient int value3 = 3;
+    private String title = "abc";
+    private String user = "abc";
+    private String pass = "abc";
     BagOfPrimitives() {
       // no-args constructor
     }
   }
 
 private void parseJson(String text) {
+    System.out.println(text);
     Gson gson = new Gson();
-    BagOfPrimitives bag = gson.fromJson(text,BagOfPrimitives.class);
-    System.out.println(bag);
+    BagOfPrimitives[] bags = gson.fromJson(text,BagOfPrimitives[].class);
+    System.out.println(bags[0]);
+    System.out.println(bags[0].title);
+
+    String output = gson.toJson(bags);
+    System.out.println(output);
 }
-
-
 
 /**************************************************************************/
 /* INSTANCE METHODS - TREE                                                */
