@@ -12,9 +12,12 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreeSelectionModel;
 
 import com.google.gson.Gson;
 
@@ -78,6 +81,7 @@ public void init() {
     mSearchLabel.setText("Search");
     mSearchLabel.setAlignment(Label.RIGHT);
     mTree.setRootVisible(false);
+    mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     mPasswordLabel.setText("Password");
     mPasswordLabel.setAlignment(Label.RIGHT);
     mPasswordTextField.setEchoChar('*');
@@ -122,6 +126,11 @@ public void init() {
     });
     mSaveAndCloseButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onSaveButtonAction(evt); }
+    });
+    mTree.addTreeSelectionListener(new TreeSelectionListener() {
+        public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+           onTreeSelectionChanged(evt);
+        }
     });
 
     // load the properties file
@@ -510,6 +519,19 @@ private void onSaveButtonAction(ActionEvent evt) {
     // exit!
     System.exit(0);
     }
+
+private void onTreeSelectionChanged(TreeSelectionEvent evt) {
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
+
+    // if nothing is selected, do nothing
+    if (node == null) return;
+
+    // retrieve the node that was selected
+    Object nodeInfo = node.getUserObject();
+    PasswordItem passwordItem = (PasswordItem)nodeInfo;
+    System.out.println(passwordItem.ttl);
+    System.out.println(passwordItem.usr);
+}
 
 /**
  * Given a password and plain text, returns encrypted text (RC4/AES-256 combo).
