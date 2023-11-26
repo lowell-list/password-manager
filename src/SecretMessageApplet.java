@@ -12,14 +12,6 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreeSelectionModel;
-
-import com.google.gson.Gson;
 
 public class SecretMessageApplet
 extends java.applet.Applet
@@ -29,11 +21,7 @@ extends java.applet.Applet
 /* INSTANCE PROPERTIES                                                    */
 /**************************************************************************/
 
-private Label                mSearchLabel;
-private TextField            mSearchTextField;
-private TextArea             mMainTextArea;
-private JTree                mTree;
-private JScrollPane          mTreeScrollPane;
+private PasswordsView        mPasswordsView;
 private Label                mPasswordLabel;
 private TextField            mPasswordTextField;
 private Button               mEncryptButton;
@@ -65,11 +53,7 @@ public void init() {
     this.setLayout(null);
 
     // instantiate components
-    mSearchLabel=new Label();
-    mSearchTextField=new TextField("");
-    mMainTextArea=new TextArea("",0,0,TextArea.SCROLLBARS_VERTICAL_ONLY);
-    mTree=new JTree();
-    mTreeScrollPane=new JScrollPane(mTree);
+    mPasswordsView = new PasswordsView();
     mPasswordLabel=new Label();
     mPasswordTextField=new TextField();
     mEncryptButton=new Button();
@@ -78,10 +62,7 @@ public void init() {
     mStatusLabel=new Label();
 
     // setup components
-    mSearchLabel.setText("Search");
-    mSearchLabel.setAlignment(Label.RIGHT);
-    mTree.setRootVisible(false);
-    mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    mPasswordsView.init();
     mPasswordLabel.setText("Password");
     mPasswordLabel.setAlignment(Label.RIGHT);
     mPasswordTextField.setEchoChar('*');
@@ -90,16 +71,13 @@ public void init() {
     mSaveAndCloseButton.setLabel("Save and Close");
 
     // add components
-    this.add(mSearchLabel);
-    this.add(mSearchTextField);
-    this.add(mMainTextArea);
+    this.add(mPasswordsView);
     this.add(mPasswordLabel);
     this.add(mPasswordTextField);
     this.add(mEncryptButton);
     this.add(mDecryptButton);
     this.add(mSaveAndCloseButton);
     this.add(mStatusLabel);
-    this.add(mTreeScrollPane);
 
     // add listeners
     this.addComponentListener(new ComponentListener() {
@@ -107,11 +85,6 @@ public void init() {
         public void componentMoved(ComponentEvent evt) { }
         public void componentShown(ComponentEvent evt) { }
         public void componentHidden(ComponentEvent evt) { }
-    });
-    mSearchTextField.addKeyListener(new KeyListener() {
-        public void keyTyped(KeyEvent evt) {}
-        public void keyPressed(KeyEvent evt) {}
-        public void keyReleased(KeyEvent evt) { onSearchTextKeyReleased(evt); }
     });
     mPasswordTextField.addKeyListener(new KeyListener() {
         public void keyTyped(KeyEvent evt) {}
@@ -127,24 +100,14 @@ public void init() {
     mSaveAndCloseButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) { onSaveButtonAction(evt); }
     });
-    mTree.addTreeSelectionListener(new TreeSelectionListener() {
-        public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-           onTreeSelectionChanged(evt);
-        }
-    });
 
     // load the properties file
     loadProperties();
 
     // load password file
     tmptxt=loadPasswordFileContents();
-    if(tmptxt!=null) { mMainTextArea.setText(tmptxt); }
+    if(tmptxt!=null) { mPasswordsView.setText(tmptxt); }
     
-    // JSON experimentation
-    PasswordCollection passwordCollection = parseJson(tmptxt);
-    TreeNode rootTreeNode = buildTree(passwordCollection);
-    mTree.setModel(new DefaultTreeModel(rootTreeNode));
-
     // set focus to the password input box
     mPasswordTextField.requestFocus();
 
@@ -169,10 +132,7 @@ public void onMainComponentResized(ComponentEvent evt) {
     wth=Math.max(this.getSize().width,400);
     hgt=Math.max(this.getSize().height,300);
 
-    mSearchLabel.setBounds(5,5,Math.max(mSearchLabel.getPreferredSize().width,70),20);
-    mSearchTextField.setBounds(5+mSearchLabel.getSize().width+10,5,wth-5-mSearchLabel.getSize().width-10-5,20);
-    // mMainTextArea.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
-    mTreeScrollPane.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
+    mPasswordsView.setBounds(5,5,wth-10,hgt-60);
     mEncryptButton.setBounds(wth-150,hgt-50,70,20);
     mDecryptButton.setBounds(wth-75,hgt-50,70,20);
     mStatusLabel.setBounds(5,hgt-25,wth-160,20);
@@ -190,7 +150,7 @@ private void setStatusText(String txt) {
     }
 
 private void enableControls(boolean flg) {
-    mMainTextArea.setEnabled(flg);
+    mPasswordsView.setEnabled(flg);
     mPasswordTextField.setEnabled(flg);
     mEncryptButton.setEnabled(flg);
     mDecryptButton.setEnabled(flg);
@@ -198,71 +158,6 @@ private void enableControls(boolean flg) {
 
 private String formatThrowable(Throwable thr) {
     return thr.getClass().getName()+" : "+thr.getMessage();
-    }
-
-/**************************************************************************/
-/* INSTANCE METHODS - JSON PARSING                                        */
-/**************************************************************************/
-
-class PasswordItem {
-    private String ttl = ""; // title
-    private String dsc = ""; // description
-    private String usr = ""; // username
-    private String pwd = ""; // password
-    private String nts = ""; // notes
-    public String toString() { return ttl; }
-    PasswordItem() {} // no-args constructor
-  }
-
-class PasswordCollection {
-    private String version = ""; // file version
-    private PasswordItem[] items = null; // password items
-    PasswordCollection() {} // no-args constructor
-    }
-
-private PasswordCollection parseJson(String text) {
-    // input
-    System.out.println(text);
-    Gson gson = new Gson();
-    PasswordCollection passwordCollection = gson.fromJson(text,PasswordCollection.class);
-    System.out.println(passwordCollection.items[0]);
-    System.out.println(passwordCollection.items[0].ttl);
-
-    // output
-    String output = gson.toJson(passwordCollection);
-    System.out.println(output);
-
-    return passwordCollection;
-}
-
-private TreeNode buildTree(PasswordCollection passwordCollection) {
-    // create the root node
-    DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
-
-    // create the child nodes
-    for (PasswordItem passwordItem : passwordCollection.items) {
-        DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
-        root.add(passwordItemNode);
-    }
-
-    // return the root node
-    return root;
-}
-
-/**************************************************************************/
-/* INSTANCE METHODS - TREE                                                */
-/**************************************************************************/
-
-private DefaultMutableTreeNode buildTestTree() {
-    //create the root node
-    DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
-    //create the child nodes
-    DefaultMutableTreeNode vegetableNode = new DefaultMutableTreeNode("Vegetables");
-    DefaultMutableTreeNode fruitNode = new DefaultMutableTreeNode("Fruits");
-    //add the child nodes to the root node
-    root.add(vegetableNode);
-    root.add(fruitNode);
-    return root;
     }
 
 /**************************************************************************/
@@ -344,61 +239,6 @@ private String loadPasswordFileContents() {
     }
 
 /**************************************************************************/
-/* INSTANCE METHODS - SEARCH                                              */
-/**************************************************************************/
-
-private void onSearchTextKeyReleased(KeyEvent evt) {
-    if(evt.getKeyCode()==KeyEvent.VK_ENTER) {
-        // search for the next occurrence
-        if((evt.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK)==KeyEvent.SHIFT_DOWN_MASK) {
-            searchAndSelect(mMainTextArea.getSelectionStart()-1,SEARCH_DIRECTION_BACKWARD);
-            }
-        else {
-            searchAndSelect(mMainTextArea.getSelectionStart()+1,SEARCH_DIRECTION_FORWARD);
-            }
-        }
-    else {
-        // search as letters are typed
-        searchAndSelect(mMainTextArea.getSelectionStart(),SEARCH_DIRECTION_FORWARD);
-        }
-    }
-
-/**
- * Search for the current search text in the main text area, and select the first matching text found.
- * Wrap if necessary.
- *
- * @param startIndex    The index at which to start searching.
- * @param direction     A valid SEARCH_DIRECTION_ constant which indicates which direction to search.
- */
-private void searchAndSelect(int startIndex, int direction) {
-    String         mantxt;             // main text, converted to lowercase
-    String         schtxt;             // search text, converted to lowercase
-    int            schidx;             // search index
-
-    // get search text and main text
-    mantxt=mMainTextArea.getText().toLowerCase();
-    schtxt=mSearchTextField.getText().toLowerCase();
-
-    // search for text
-    if(direction==SEARCH_DIRECTION_FORWARD) {
-        // search forward, wrapping if necessary
-        schidx=mantxt.indexOf(schtxt,startIndex);
-        if(schidx==-1) { schidx=mantxt.indexOf(schtxt); } // start at the beginning
-        }
-    else {
-        // search backward, wrapping if necessary
-        schidx=mantxt.lastIndexOf(schtxt,startIndex);
-        if(schidx==-1) { schidx=mantxt.lastIndexOf(schtxt); } // start at the end
-        }
-
-    // select text if found
-    if(schidx>=0) {
-        mMainTextArea.setSelectionStart(schidx);
-        mMainTextArea.setSelectionEnd(schidx+schtxt.length());
-        }
-    }
-
-/**************************************************************************/
 /* INSTANCE METHODS - ENCRYPTION/DECRYPTION                               */
 /**************************************************************************/
 
@@ -416,7 +256,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
 
     // get window and password text
     enableControls(false);
-    wndtxt=mMainTextArea.getText();
+    wndtxt=mPasswordsView.getText();
     if(wndtxt.length()==0) { setStatusText("Text Area cannot be blank."); enableControls(true); return; }
     pwdtxt=mPasswordTextField.getText();
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
@@ -425,7 +265,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
     setStatusText("Decrypting...");
     try {
         dcrstr=decrypt(pwdtxt,wndtxt);
-        mMainTextArea.setText(dcrstr);
+        mPasswordsView.setText(dcrstr);
         }
     catch(Exception exp) {
         setStatusText("Could not decrypt.");
@@ -436,8 +276,7 @@ private void onDecryptButtonAction(ActionEvent evt) {
 
     // done
     enableControls(true);
-    mMainTextArea.setCaretPosition(0);
-    mSearchTextField.requestFocus();
+    mPasswordsView.reset();
     setStatusText("Decrypted ("+dcrstr.length()+") characters.");
     }
 
@@ -447,7 +286,7 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     // get window and password text
     enableControls(false);
-    wndtxt=mMainTextArea.getText();
+    wndtxt=mPasswordsView.getText();
     if(wndtxt.length()==0) { setStatusText("Text Area cannot be blank."); enableControls(true); return; }
     pwdtxt=mPasswordTextField.getText();
     if(pwdtxt.length()==0) { setStatusText("Password cannot be blank."); enableControls(true); return; }
@@ -456,7 +295,7 @@ private void onEncryptButtonAction(ActionEvent evt) {
     setStatusText("Encrypting...");
     try {
         String cphtxt = encrypt(pwdtxt,wndtxt);
-        mMainTextArea.setText(cphtxt);
+        mPasswordsView.setText(cphtxt);
         }
     catch(Exception exp) {
         setStatusText("Could not encrypt.");
@@ -467,8 +306,7 @@ private void onEncryptButtonAction(ActionEvent evt) {
 
     // done
     enableControls(true);
-    mMainTextArea.setCaretPosition(0);
-    mMainTextArea.requestFocus();
+    mPasswordsView.reset();
     setStatusText("Encrypted ("+wndtxt.length()+") characters.");
     }
 
@@ -504,7 +342,7 @@ private void onSaveButtonAction(ActionEvent evt) {
         
         // write the new file contents
         fw=new FileWriter(filpwd);
-        fw.write(mMainTextArea.getText());
+        fw.write(mPasswordsView.getText());
         fw.close();
         }
     catch(Exception exp) {
@@ -519,19 +357,6 @@ private void onSaveButtonAction(ActionEvent evt) {
     // exit!
     System.exit(0);
     }
-
-private void onTreeSelectionChanged(TreeSelectionEvent evt) {
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
-
-    // if nothing is selected, do nothing
-    if (node == null) return;
-
-    // retrieve the node that was selected
-    Object nodeInfo = node.getUserObject();
-    PasswordItem passwordItem = (PasswordItem)nodeInfo;
-    System.out.println(passwordItem.ttl);
-    System.out.println(passwordItem.usr);
-}
 
 /**
  * Given a password and plain text, returns encrypted text (RC4/AES-256 combo).
@@ -602,8 +427,6 @@ private String decrypt(String password, String cipherText) throws Exception
 private static final String            PROPERTIES_FILENAME="PasswordManager.cfg";
 private static final String            PRPNAM_PWDFILPTH="pwdfilpth";           // property: password file path
 private static final String            ENCODING="UTF8";
-private static final int               SEARCH_DIRECTION_FORWARD=1;
-private static final int               SEARCH_DIRECTION_BACKWARD=2;
 private static final String            OBFUSCATE_PASSWORD="obfuscate";
 
 /**************************************************************************/
