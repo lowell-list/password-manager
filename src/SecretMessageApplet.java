@@ -13,6 +13,9 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+
 import com.google.gson.Gson;
 
 public class SecretMessageApplet
@@ -26,13 +29,14 @@ extends java.applet.Applet
 private Label                mSearchLabel;
 private TextField            mSearchTextField;
 private TextArea             mMainTextArea;
+private JTree                mTree;
+private JScrollPane          mTreeScrollPane;
 private Label                mPasswordLabel;
 private TextField            mPasswordTextField;
 private Button               mEncryptButton;
 private Button               mDecryptButton;
 private Button               mSaveAndCloseButton;
 private Label                mStatusLabel;
-private JTree                mTree;
 
 private boolean              mInitialized=false;
 private Properties           mProperties=null;
@@ -61,17 +65,19 @@ public void init() {
     mSearchLabel=new Label();
     mSearchTextField=new TextField("");
     mMainTextArea=new TextArea("",0,0,TextArea.SCROLLBARS_VERTICAL_ONLY);
+    mTree=new JTree();
+    mTreeScrollPane=new JScrollPane(mTree);
     mPasswordLabel=new Label();
     mPasswordTextField=new TextField();
     mEncryptButton=new Button();
     mDecryptButton=new Button();
     mSaveAndCloseButton=new Button();
     mStatusLabel=new Label();
-    mTree=new JTree();
 
     // setup components
     mSearchLabel.setText("Search");
     mSearchLabel.setAlignment(Label.RIGHT);
+    mTree.setRootVisible(false);
     mPasswordLabel.setText("Password");
     mPasswordLabel.setAlignment(Label.RIGHT);
     mPasswordTextField.setEchoChar('*');
@@ -89,7 +95,7 @@ public void init() {
     this.add(mDecryptButton);
     this.add(mSaveAndCloseButton);
     this.add(mStatusLabel);
-    this.add(mTree);
+    this.add(mTreeScrollPane);
 
     // add listeners
     this.addComponentListener(new ComponentListener() {
@@ -126,7 +132,9 @@ public void init() {
     if(tmptxt!=null) { mMainTextArea.setText(tmptxt); }
     
     // JSON experimentation
-    parseJson(tmptxt);
+    PasswordCollection passwordCollection = parseJson(tmptxt);
+    TreeNode rootTreeNode = buildTree(passwordCollection);
+    mTree.setModel(new DefaultTreeModel(rootTreeNode));
 
     // set focus to the password input box
     mPasswordTextField.requestFocus();
@@ -155,7 +163,7 @@ public void onMainComponentResized(ComponentEvent evt) {
     mSearchLabel.setBounds(5,5,Math.max(mSearchLabel.getPreferredSize().width,70),20);
     mSearchTextField.setBounds(5+mSearchLabel.getSize().width+10,5,wth-5-mSearchLabel.getSize().width-10-5,20);
     // mMainTextArea.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
-    mTree.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
+    mTreeScrollPane.setBounds(5,5+mSearchTextField.getSize().height+5,wth-10,hgt-60-mSearchTextField.getSize().height-5);
     mEncryptButton.setBounds(wth-150,hgt-50,70,20);
     mDecryptButton.setBounds(wth-75,hgt-50,70,20);
     mStatusLabel.setBounds(5,hgt-25,wth-160,20);
@@ -189,24 +197,47 @@ private String formatThrowable(Throwable thr) {
 
 class PasswordItem {
     private String ttl = ""; // title
+    private String dsc = ""; // description
     private String usr = ""; // username
     private String pwd = ""; // password
     private String nts = ""; // notes
-    private PasswordItem[] cld = null; // children
+    public String toString() { return ttl; }
     PasswordItem() {} // no-args constructor
   }
 
-private void parseJson(String text) {
+class PasswordCollection {
+    private String version = ""; // file version
+    private PasswordItem[] items = null; // password items
+    PasswordCollection() {} // no-args constructor
+    }
+
+private PasswordCollection parseJson(String text) {
     // input
     System.out.println(text);
     Gson gson = new Gson();
-    PasswordItem[] itms = gson.fromJson(text,PasswordItem[].class);
-    System.out.println(itms[0]);
-    System.out.println(itms[0].ttl);
+    PasswordCollection passwordCollection = gson.fromJson(text,PasswordCollection.class);
+    System.out.println(passwordCollection.items[0]);
+    System.out.println(passwordCollection.items[0].ttl);
 
     // output
-    String output = gson.toJson(itms);
+    String output = gson.toJson(passwordCollection);
     System.out.println(output);
+
+    return passwordCollection;
+}
+
+private TreeNode buildTree(PasswordCollection passwordCollection) {
+    // create the root node
+    DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
+
+    // create the child nodes
+    for (PasswordItem passwordItem : passwordCollection.items) {
+        DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
+        root.add(passwordItemNode);
+    }
+
+    // return the root node
+    return root;
 }
 
 /**************************************************************************/
