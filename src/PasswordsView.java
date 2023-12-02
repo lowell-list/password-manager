@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -150,6 +151,16 @@ public class PasswordsView
                 onTreeSelectionChanged(evt);
             }
         });
+        mCopyUsernameButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyTextToClipboard(mUsernameTextField.getText());
+            }
+        });
+        mCopyPasswordButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyTextToClipboard(mPasswordTextField.getText());
+            }
+        });
 
         // finish
         mInitialized = true;
@@ -241,6 +252,14 @@ public class PasswordsView
                     btnwth,
                     TEXTFIELD_HEIGHT);
         }
+    }
+
+    private void copyTextToClipboard(String text) {
+        Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(
+                        new StringSelection(text),
+                        null);
     }
 
     public void setText(String text) {
