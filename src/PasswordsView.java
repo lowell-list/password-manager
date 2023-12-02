@@ -47,6 +47,7 @@ public class PasswordsView
     private Label mPasswordLabel;
     private TextField mPasswordTextField;
     private Button mCopyPasswordButton;
+    private Button mToggleHidePasswordButton;
 
     private boolean mInitialized = false;
     private Mode mMode = Mode.TEXT;
@@ -85,6 +86,7 @@ public class PasswordsView
         mPasswordLabel = new Label();
         mPasswordTextField = new TextField();
         mCopyPasswordButton = new Button();
+        mToggleHidePasswordButton = new Button();
 
         // setup components
         mSearchLabel.setText("Search");
@@ -101,7 +103,9 @@ public class PasswordsView
         mCopyUsernameButton.setLabel("Copy");
         mPasswordLabel.setText("Password");
         mPasswordLabel.setAlignment(Label.RIGHT);
+        setTextFieldEcho(mPasswordTextField, false);
         mCopyPasswordButton.setLabel("Copy");
+        setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
 
         // add components
         this.add(mSearchLabel);
@@ -119,6 +123,7 @@ public class PasswordsView
         mDetailPanel.add(mPasswordLabel);
         mDetailPanel.add(mPasswordTextField);
         mDetailPanel.add(mCopyPasswordButton);
+        mDetailPanel.add(mToggleHidePasswordButton);
 
         // add listeners
         this.addComponentListener(new ComponentListener() {
@@ -161,6 +166,11 @@ public class PasswordsView
                 copyTextToClipboard(mPasswordTextField.getText());
             }
         });
+        mToggleHidePasswordButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                toggleHidePassword();
+            }
+        });
 
         // finish
         mInitialized = true;
@@ -172,33 +182,20 @@ public class PasswordsView
     }
 
     public void onMainComponentResized(ComponentEvent evt) {
-        int ctrwth; // container width
-        int ctrhgt; // container height
-
         if (!mInitialized) {
             return;
         }
-        ctrwth = this.getSize().width;
-        ctrhgt = this.getSize().height;
+        Dimension ctrsiz = this.getSize();
 
         // search label and field (top)
-        mSearchLabel.setBounds(
-                0,
-                0,
-                Math.max(mSearchLabel.getPreferredSize().width, 70),
-                TEXTFIELD_HEIGHT);
+        layoutLabelAndField(0, ctrsiz.width, mSearchLabel, mSearchTextField);
         Dimension schlblsiz = mSearchLabel.getSize();
-        mSearchTextField.setBounds(
-                schlblsiz.width + INNER_PAD,
-                0,
-                ctrwth - (schlblsiz.width + INNER_PAD),
-                TEXTFIELD_HEIGHT);
 
         // main area dimensions: used for text area, tree scroll pane, and detail panel
         int maiX = 0;
         int maiY = schlblsiz.height + INNER_PAD;
-        int maiW = ctrwth;
-        int maiH = ctrhgt - schlblsiz.height - INNER_PAD;
+        int maiW = ctrsiz.width;
+        int maiH = ctrsiz.height - schlblsiz.height - INNER_PAD;
 
         // text area
         mMainTextArea.setBounds(maiX, maiY, maiW, maiH); // full size
@@ -226,7 +223,7 @@ public class PasswordsView
         top += TEXTFIELD_HEIGHT + INNER_PAD;
         layoutLabelAndField(top, dtlpnlsiz.width, mPasswordLabel, mPasswordTextField);
         top += TEXTFIELD_HEIGHT + INNER_PAD;
-        layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton });
+        layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleHidePasswordButton });
     }
 
     private void layoutLabelAndField(int top, int containerWidth, Label label, TextField textField) {
@@ -244,7 +241,7 @@ public class PasswordsView
     }
 
     private void layoutActionButtons(int top, int containerWidth, Button[] buttons) {
-        int btnwth = 70;
+        int btnwth = 60;
         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setBounds(
                     containerWidth - btnwth - (INNER_PAD * i) - (btnwth * i),
@@ -260,6 +257,35 @@ public class PasswordsView
                 .setContents(
                         new StringSelection(text),
                         null);
+    }
+
+    private void setTextFieldEcho(TextField textField, boolean show) {
+        if (show) {
+            textField.setEchoChar((char) 0);
+        } else {
+            textField.setEchoChar('*');
+        }
+    }
+
+    private void toggleTextFieldEcho(TextField textField) {
+        setTextFieldEcho(textField, !isEchoingPlainText(textField));
+    }
+
+    private boolean isEchoingPlainText(TextField textField) {
+        return textField.getEchoChar() == (char) 0;
+    }
+
+    private void setButtonLabelBasedOnEcho(Button button, TextField textField) {
+        if (isEchoingPlainText(textField)) {
+            button.setLabel("Hide");
+        } else {
+            button.setLabel("Show");
+        }
+    }
+
+    private void toggleHidePassword() {
+        toggleTextFieldEcho(mPasswordTextField);
+        setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
     }
 
     public void setText(String text) {
