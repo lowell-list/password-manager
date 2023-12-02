@@ -42,8 +42,10 @@ public class PasswordsView
     private TextField mDescriptionTextField;
     private Label mUsernameLabel;
     private TextField mUsernameTextField;
+    private Button mCopyUsernameButton;
     private Label mPasswordLabel;
     private TextField mPasswordTextField;
+    private Button mCopyPasswordButton;
 
     private boolean mInitialized = false;
     private Mode mMode = Mode.TEXT;
@@ -78,8 +80,10 @@ public class PasswordsView
         mDescriptionTextField = new TextField();
         mUsernameLabel = new Label();
         mUsernameTextField = new TextField();
+        mCopyUsernameButton = new Button();
         mPasswordLabel = new Label();
         mPasswordTextField = new TextField();
+        mCopyPasswordButton = new Button();
 
         // setup components
         mSearchLabel.setText("Search");
@@ -93,8 +97,10 @@ public class PasswordsView
         mDescriptionLabel.setAlignment(Label.RIGHT);
         mUsernameLabel.setText("Username");
         mUsernameLabel.setAlignment(Label.RIGHT);
+        mCopyUsernameButton.setLabel("Copy");
         mPasswordLabel.setText("Password");
         mPasswordLabel.setAlignment(Label.RIGHT);
+        mCopyPasswordButton.setLabel("Copy");
 
         // add components
         this.add(mSearchLabel);
@@ -108,8 +114,10 @@ public class PasswordsView
         mDetailPanel.add(mDescriptionTextField);
         mDetailPanel.add(mUsernameLabel);
         mDetailPanel.add(mUsernameTextField);
+        mDetailPanel.add(mCopyUsernameButton);
         mDetailPanel.add(mPasswordLabel);
         mDetailPanel.add(mPasswordTextField);
+        mDetailPanel.add(mCopyPasswordButton);
 
         // add listeners
         this.addComponentListener(new ComponentListener() {
@@ -203,7 +211,11 @@ public class PasswordsView
         top += TEXTFIELD_HEIGHT + INNER_PAD;
         layoutLabelAndField(top, dtlpnlsiz.width, mUsernameLabel, mUsernameTextField);
         top += TEXTFIELD_HEIGHT + INNER_PAD;
+        layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyUsernameButton });
+        top += TEXTFIELD_HEIGHT + INNER_PAD;
         layoutLabelAndField(top, dtlpnlsiz.width, mPasswordLabel, mPasswordTextField);
+        top += TEXTFIELD_HEIGHT + INNER_PAD;
+        layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton });
     }
 
     private void layoutLabelAndField(int top, int containerWidth, Label label, TextField textField) {
@@ -218,6 +230,17 @@ public class PasswordsView
                 top,
                 containerWidth - (lblsiz.width + INNER_PAD),
                 TEXTFIELD_HEIGHT);
+    }
+
+    private void layoutActionButtons(int top, int containerWidth, Button[] buttons) {
+        int btnwth = 70;
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setBounds(
+                    containerWidth - btnwth - (INNER_PAD * i) - (btnwth * i),
+                    top,
+                    btnwth,
+                    TEXTFIELD_HEIGHT);
+        }
     }
 
     public void setText(String text) {
