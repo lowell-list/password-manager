@@ -10,64 +10,64 @@
 import java.awt.*;
 
 public class PasswordManager
-extends java.lang.Object
-{
+        extends java.lang.Object {
 
-/**************************************************************************/
-/* INSTANCE PROPERTIES                                                    */
-/**************************************************************************/
+    /**************************************************************************/
+    /* INSTANCE PROPERTIES */
+    /**************************************************************************/
 
-/**************************************************************************/
-/* INSTANCE CONSTRUCTORS                                                  */
-/**************************************************************************/
+    /**************************************************************************/
+    /* INSTANCE CONSTRUCTORS */
+    /**************************************************************************/
 
-/**************************************************************************/
-/* INSTANCE METHODS                                                       */
-/**************************************************************************/
+    /**************************************************************************/
+    /* INSTANCE METHODS */
+    /**************************************************************************/
 
-/**************************************************************************/
-/* INNER CLASSES                                                          */
-/**************************************************************************/
+    /**************************************************************************/
+    /* INNER CLASSES */
+    /**************************************************************************/
 
-/**************************************************************************/
-/* STATIC PROPERTIES                                                      */
-/**************************************************************************/
+    /**************************************************************************/
+    /* STATIC PROPERTIES */
+    /**************************************************************************/
 
-/**************************************************************************/
-/* STATIC INIT & MAIN                                                     */
-/**************************************************************************/
+    /**************************************************************************/
+    /* STATIC INIT & MAIN */
+    /**************************************************************************/
 
-public static void main(String[] args) {
-    Frame          frm;                // main frame
-    Insets         ins;                // temp object    
-    SecretMessageApplet apt;           // the applet we are converting to an application
-    int            wid=500,hgt=600;    // initial (and minimum) width and height for this application
-    
-    // create the main frame and add the appropriate listener
-    frm=new Frame();
-    frm.addWindowListener(
-        new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent e) { System.exit(0); };
-            }
-        );
-        
-    // init
-    apt=new SecretMessageApplet();
-    apt.setSize(wid,hgt);
-    frm.add(apt);
-    frm.pack();
-    apt.init();
-    apt.start();
-    ins=frm.getInsets();
-    frm.setSize(wid+ins.left+ins.right,hgt+ins.top+ins.bottom);
-    frm.setMinimumSize(frm.getSize());
-    frm.setTitle("Simple Password Manager");
-    frm.setLocationByPlatform(true);
-    frm.setVisible(true);
+    public static void main(String[] args) {
+        Frame frm; // main frame
+        Insets ins; // temp object
+        PasswordManagerApplet apt; // the applet we are converting to an application
+        int wid = 500, hgt = 600; // initial (and minimum) width and height for this application
+
+        // create the main frame and add the appropriate listener
+        frm = new Frame();
+        frm.addWindowListener(
+                new java.awt.event.WindowAdapter() {
+                    public void windowClosing(java.awt.event.WindowEvent e) {
+                        System.exit(0);
+                    };
+                });
+
+        // init
+        apt = new PasswordManagerApplet();
+        apt.setSize(wid, hgt);
+        frm.add(apt);
+        frm.pack();
+        apt.init();
+        apt.start();
+        ins = frm.getInsets();
+        frm.setSize(wid + ins.left + ins.right, hgt + ins.top + ins.bottom);
+        frm.setMinimumSize(frm.getSize());
+        frm.setTitle("Simple Password Manager");
+        frm.setLocationByPlatform(true);
+        frm.setVisible(true);
     }
 
-/**************************************************************************/
-/* STATIC METHODS                                                         */
-/**************************************************************************/
+    /**************************************************************************/
+    /* STATIC METHODS */
+    /**************************************************************************/
 
 } /* END PUBLIC CLASS */

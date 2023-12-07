@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------
- * Description : SecretMessageApplet - Applet to Encrypt/Decrypt Simple Text
+ * Description : PasswordManagerApplet - Applet to Encrypt/Decrypt Simple Text
  * Author      : Lowell List
  * Date        : 29 Jun 2002
  * Origin OS   : Windows 2000
@@ -13,7 +13,7 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 
-public class SecretMessageApplet
+public class PasswordManagerApplet
         extends java.applet.Applet {
 
     /**************************************************************************/
@@ -36,7 +36,7 @@ public class SecretMessageApplet
     /**************************************************************************/
 
     // construct the applet
-    public SecretMessageApplet() {
+    public PasswordManagerApplet() {
     }
 
     /**************************************************************************/
