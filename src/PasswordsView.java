@@ -438,6 +438,7 @@ public class PasswordsView
     }
 
     class PasswordCollection {
+        private String title = ""; // title
         private String version = ""; // file version
         private PasswordItem[] items = null; // password items
 
