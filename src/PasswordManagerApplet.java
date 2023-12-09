@@ -296,7 +296,7 @@ public class PasswordManagerApplet
             mPasswordsView.setText(dcrstr);
         } catch (Exception exp) {
             setStatusText("Could not decrypt.");
-            exp.printStackTrace();
+            // exp.printStackTrace();
             enableControls(true);
             return;
         }
@@ -333,7 +333,7 @@ public class PasswordManagerApplet
             mPasswordsView.setText(cphtxt);
         } catch (Exception exp) {
             setStatusText("Could not encrypt.");
-            exp.printStackTrace();
+            // exp.printStackTrace();
             enableControls(true);
             return;
         }

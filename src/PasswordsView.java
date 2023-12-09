@@ -2,6 +2,8 @@ import com.google.gson.Gson;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
+import java.util.Enumeration;
+
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -308,7 +310,23 @@ public class PasswordsView
     }
 
     public String getText() {
-        return mMainTextArea.getText();
+        String text;
+        if (mMode == Mode.TREE) {
+
+            DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
+            PasswordCollection passwordCollection = fromTree(root);
+            String json = toJSON(passwordCollection);
+
+            // TODO: convert tree to JSON!
+            // String path = mTree.getSelectionPath();
+            // text = mTree.getSelectionPath().toString();
+            text = json;
+        } else {
+            text = mMainTextArea.getText();
+        }
+        System.out.println("getText(): text is");
+        System.out.println(text);
+        return text;
     }
 
     /**
@@ -370,6 +388,19 @@ public class PasswordsView
         }
     }
 
+    /**
+     * Inner Classes: Tree
+     * -------------------------------------------------------------------------
+     */
+
+    private String toJSON(PasswordCollection passwordCollection) {
+        String output = "";
+        for (PasswordItem passwordItem : passwordCollection.items) {
+            output += passwordItem.ttl + "\n";
+        }
+        return output;
+    }
+
     private PasswordCollection parseJson(String text) {
         // input
         // System.out.println(text);
@@ -382,6 +413,35 @@ public class PasswordsView
         // String output = gson.toJson(passwordCollection);
         // System.out.println(output);
 
+        return passwordCollection;
+    }
+
+    private PasswordCollection fromTree(DefaultMutableTreeNode root) {
+
+        System.out.println(root.getChildCount());
+        PasswordItem items[] = new PasswordItem[root.getChildCount()];
+
+        int index = 0;
+        for (Enumeration<?> e = root.breadthFirstEnumeration(); e.hasMoreElements();) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
+            Object userObject = node.getUserObject();
+            if (userObject instanceof String) {
+                System.out.println("Found String userObject: [" + userObject + "]");
+                continue;
+            }
+            if (userObject instanceof PasswordItem) {
+                PasswordItem item = (PasswordItem) userObject;
+                System.out.println("Found PasswordItem with title: [" + item.ttl + "]");
+                items[index] = item;
+                index++;
+            }
+        }
+        System.out.println("Found [" + String.valueOf(index) + "] PasswordItems");
+
+        // return the root node
+        PasswordCollection passwordCollection = new PasswordCollection();
+        passwordCollection.items = items;
+        passwordCollection.version = "1.0";
         return passwordCollection;
     }
 
