@@ -158,6 +158,17 @@ public class PasswordsView
                 onTreeSelectionChanged(evt);
             }
         });
+        mTitleTextField.addKeyListener(new KeyListener() {
+            public void keyTyped(KeyEvent evt) {
+            }
+
+            public void keyPressed(KeyEvent evt) {
+            }
+
+            public void keyReleased(KeyEvent evt) {
+                onTitleTextKeyReleased(evt);
+            }
+        });
         mCopyUsernameButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 copyTextToClipboard(mUsernameTextField.getText());
@@ -383,7 +394,7 @@ public class PasswordsView
     }
 
     /**
-     * Inner Classes: Tree
+     * Instance Methods: Tree
      * -------------------------------------------------------------------------
      */
 
@@ -430,15 +441,10 @@ public class PasswordsView
     }
 
     private void onTreeSelectionChanged(TreeSelectionEvent evt) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
-
-        // if nothing is selected, do nothing
-        if (node == null)
+        PasswordItem passwordItem = getSelectedPasswordItem();
+        if (passwordItem == null) {
             return;
-
-        // retrieve the node that was selected
-        Object nodeInfo = node.getUserObject();
-        PasswordItem passwordItem = (PasswordItem) nodeInfo;
+        }
 
         // update the detail panel
         mTitleTextField.setText(passwordItem.ttl);
@@ -447,10 +453,50 @@ public class PasswordsView
         mPasswordTextField.setText(passwordItem.pwd);
     }
 
+    private DefaultMutableTreeNode getSelectedTreeNode() {
+        return (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
+    }
+
+    private PasswordItem getSelectedPasswordItem() {
+        // get the selected node; do nothing if nothing is selected
+        DefaultMutableTreeNode node = getSelectedTreeNode();
+        if (node == null) {
+            return null;
+        }
+        // return the password item
+        return (PasswordItem) node.getUserObject();
+    }
+
+    /**
+     * Instance Methods: Password Item Input
+     * -------------------------------------------------------------------------
+     */
+
+    private void onTitleTextKeyReleased(KeyEvent evt) {
+        // get selected password item
+        PasswordItem passwordItem = getSelectedPasswordItem();
+        if (passwordItem == null) {
+            return;
+        }
+        // update its title field value
+        passwordItem.ttl = mTitleTextField.getText();
+        // refresh tree UI
+        mTree.repaint();
+    }
+
     /**
      * Inner Classes
      * -------------------------------------------------------------------------
      */
+
+    class PasswordCollection {
+        private String title = ""; // title
+        private String version = ""; // file version
+        private PasswordItem[] items = null; // password items
+
+        PasswordCollection() {
+        } // no-args constructor
+    }
 
     class PasswordItem {
         private String ttl = ""; // title
@@ -464,15 +510,6 @@ public class PasswordsView
         }
 
         PasswordItem() {
-        } // no-args constructor
-    }
-
-    class PasswordCollection {
-        private String title = ""; // title
-        private String version = ""; // file version
-        private PasswordItem[] items = null; // password items
-
-        PasswordCollection() {
         } // no-args constructor
     }
 
