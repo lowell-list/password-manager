@@ -11,4 +11,5 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 
 ## TODO
 
-- [ ] get save, decrypt, encrypt working with plain text and JSON
+- [x] get save, decrypt, encrypt working with plain text and JSON
+- [ ] when editing password items, update the user object values

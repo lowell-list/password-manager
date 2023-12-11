@@ -293,8 +293,8 @@ public class PasswordsView
     public void setText(String text) {
         // first, try to parse it as JSON
         try {
-            PasswordCollection passwordCollection = parseJson(text);
-            TreeNode root = buildTree(passwordCollection);
+            PasswordCollection passwordCollection = fromJson(text);
+            TreeNode root = treeFromCollection(passwordCollection);
             mTree.setModel(new javax.swing.tree.DefaultTreeModel(root));
             mMode = Mode.TREE;
         } catch (Exception e) {
@@ -312,15 +312,9 @@ public class PasswordsView
     public String getText() {
         String text;
         if (mMode == Mode.TREE) {
-
             DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
-            PasswordCollection passwordCollection = fromTree(root);
-            String json = toJSON(passwordCollection);
-
-            // TODO: convert tree to JSON!
-            // String path = mTree.getSelectionPath();
-            // text = mTree.getSelectionPath().toString();
-            text = json;
+            PasswordCollection passwordCollection = collectionFromTree(root);
+            text = toJson(passwordCollection);
         } else {
             text = mMainTextArea.getText();
         }
@@ -393,63 +387,39 @@ public class PasswordsView
      * -------------------------------------------------------------------------
      */
 
-    private String toJSON(PasswordCollection passwordCollection) {
-        String output = "";
-        for (PasswordItem passwordItem : passwordCollection.items) {
-            output += passwordItem.ttl + "\n";
-        }
-        return output;
-    }
+    /** Create a PasswordCollection object give a tree root */
+    private PasswordCollection collectionFromTree(DefaultMutableTreeNode root) {
 
-    private PasswordCollection parseJson(String text) {
-        // input
-        // System.out.println(text);
-        Gson gson = new Gson();
-        PasswordCollection passwordCollection = gson.fromJson(text, PasswordCollection.class);
-        // System.out.println(passwordCollection.items[0]);
-        // System.out.println(passwordCollection.items[0].ttl);
+        // create a new PasswordCollection and an array of items
+        PasswordCollection newPasswordCollection = new PasswordCollection();
+        newPasswordCollection.items = new PasswordItem[root.getChildCount()];
 
-        // output
-        // String output = gson.toJson(passwordCollection);
-        // System.out.println(output);
-
-        return passwordCollection;
-    }
-
-    private PasswordCollection fromTree(DefaultMutableTreeNode root) {
-
-        System.out.println(root.getChildCount());
-        PasswordItem items[] = new PasswordItem[root.getChildCount()];
-
-        int index = 0;
+        // iterate through the tree and populate the PasswordCollection and items array
+        int itemIndex = 0;
         for (Enumeration<?> e = root.breadthFirstEnumeration(); e.hasMoreElements();) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
             Object userObject = node.getUserObject();
-            if (userObject instanceof String) {
-                System.out.println("Found String userObject: [" + userObject + "]");
-                continue;
-            }
-            if (userObject instanceof PasswordItem) {
+            if (userObject instanceof PasswordCollection) {
+                PasswordCollection originalPasswordCollection = (PasswordCollection) userObject;
+                newPasswordCollection.version = originalPasswordCollection.version;
+                newPasswordCollection.title = originalPasswordCollection.title;
+            } else if (userObject instanceof PasswordItem) {
                 PasswordItem item = (PasswordItem) userObject;
-                System.out.println("Found PasswordItem with title: [" + item.ttl + "]");
-                items[index] = item;
-                index++;
+                newPasswordCollection.items[itemIndex] = item;
+                itemIndex++;
             }
         }
-        System.out.println("Found [" + String.valueOf(index) + "] PasswordItems");
+        System.out.println("Found [" + String.valueOf(itemIndex) + "] PasswordItems");
 
-        // return the root node
-        PasswordCollection passwordCollection = new PasswordCollection();
-        passwordCollection.items = items;
-        passwordCollection.version = "1.0";
-        return passwordCollection;
+        // return the new PasswordCollection
+        return newPasswordCollection;
     }
 
-    private TreeNode buildTree(PasswordCollection passwordCollection) {
-        // create the root node
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
+    private TreeNode treeFromCollection(PasswordCollection passwordCollection) {
+        // create the root node and give it the original password collection
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(passwordCollection);
 
-        // create the child nodes
+        // create a child node for each password item
         for (PasswordItem passwordItem : passwordCollection.items) {
             DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
             root.add(passwordItemNode);
@@ -526,5 +496,16 @@ public class PasswordsView
      * Static Methods
      * -------------------------------------------------------------------------
      */
+
+    private static PasswordCollection fromJson(String text) {
+        Gson gson = new Gson();
+        PasswordCollection passwordCollection = gson.fromJson(text, PasswordCollection.class);
+        return passwordCollection;
+    }
+
+    private static String toJson(PasswordCollection collection) {
+        Gson gson = new Gson();
+        return gson.toJson(collection);
+    }
 
 } // END PUBLIC CLASS
