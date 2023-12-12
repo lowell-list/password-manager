@@ -478,10 +478,12 @@ public class PasswordsView
         if (passwordItem == null) {
             return;
         }
+
         // update its title field value
         passwordItem.ttl = mTitleTextField.getText();
+
         // refresh tree UI
-        mTree.repaint();
+        mTree.getModel().valueForPathChanged(mTree.getSelectionPath(), passwordItem);
     }
 
     /**
