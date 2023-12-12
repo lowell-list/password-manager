@@ -95,7 +95,7 @@ public class PasswordsView
         mSearchLabel.setAlignment(Label.RIGHT);
         mTree.setRootVisible(false);
         mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        // mDetailPanel.setBackground(getBackground());
+        mDetailPanel.setBackground(getBackground());
         mTitleLabel.setText("Title");
         mTitleLabel.setAlignment(Label.RIGHT);
         mDescriptionLabel.setText("Description");
@@ -157,6 +157,21 @@ public class PasswordsView
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 onTreeSelectionChanged(evt);
             }
+        });
+        mDetailPanel.addComponentListener(new ComponentListener() {
+            public void componentResized(ComponentEvent evt) {
+            }
+
+            public void componentMoved(ComponentEvent evt) {
+            }
+
+            public void componentShown(ComponentEvent evt) {
+                onMainComponentResized(evt);
+            }
+
+            public void componentHidden(ComponentEvent evt) {
+            }
+
         });
         mTitleTextField.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent evt) {
@@ -318,6 +333,7 @@ public class PasswordsView
         // set visibility
         mTreeScrollPane.setVisible(mMode == Mode.TREE);
         mMainTextArea.setVisible(mMode == Mode.TEXT);
+        mDetailPanel.setVisible(false);
     }
 
     public String getText() {
@@ -440,11 +456,13 @@ public class PasswordsView
 
     private void onTreeSelectionChanged(TreeSelectionEvent evt) {
         PasswordItem passwordItem = getSelectedPasswordItem();
-        if (passwordItem == null) {
+        boolean isItemSelected = passwordItem != null;
+        mDetailPanel.setVisible(isItemSelected);
+        if (!isItemSelected) {
             return;
         }
 
-        // update the detail panel
+        // update the detail panel items
         mTitleTextField.setText(passwordItem.ttl);
         mDescriptionTextField.setText(passwordItem.dsc);
         mUsernameTextField.setText(passwordItem.usr);
