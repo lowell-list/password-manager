@@ -14,6 +14,7 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] get save, decrypt, encrypt working with plain text and JSON
 - [x] show notes field
 - [x] don't show fields if no tree selection
+- [ ] refactor to use text and tree views
 - [ ] when editing password items, update the user object values
   - [x] title
   - [ ] description

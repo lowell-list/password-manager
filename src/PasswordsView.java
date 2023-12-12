@@ -1,27 +1,17 @@
-import com.google.gson.Gson;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
-import java.util.Enumeration;
-
-import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreeSelectionModel;
 
 /**
- * PasswordsView: A view for displaying passwords.
- * Includes a search field for searching.
- * Depending on the type of data, it will either display a text area or a tree.
+ * PasswordsView: A view for displaying, searching, and editing passwords.
+ * Depending on the type of data, it will either display a text area or a tree
+ * view.
  */
 public class PasswordsView
         extends javax.swing.JComponent {
 
     /**
      * Types
-     * -----------------------------------------------------------------------------
+     * -------------------------------------------------------------------------
      */
 
     private enum Mode {
@@ -30,26 +20,13 @@ public class PasswordsView
 
     /**
      * Instance Properties
-     * -----------------------------------------------------------------------------
+     * -------------------------------------------------------------------------
      */
 
     private Label mSearchLabel;
     private TextField mSearchTextField;
     private TextArea mMainTextArea;
-    private JTree mTree;
-    private JScrollPane mTreeScrollPane;
-    private JPanel mDetailPanel;
-    private Label mTitleLabel;
-    private TextField mTitleTextField;
-    private Label mDescriptionLabel;
-    private TextField mDescriptionTextField;
-    private Label mUsernameLabel;
-    private TextField mUsernameTextField;
-    private Button mCopyUsernameButton;
-    private Label mPasswordLabel;
-    private TextField mPasswordTextField;
-    private Button mCopyPasswordButton;
-    private Button mToggleHidePasswordButton;
+    private PasswordsTreeView mPasswordsTreeView;
 
     private boolean mInitialized = false;
     private Mode mMode = Mode.TEXT;
@@ -75,57 +52,18 @@ public class PasswordsView
         mSearchLabel = new Label();
         mSearchTextField = new TextField("");
         mMainTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
-        mTree = new JTree();
-        mTreeScrollPane = new JScrollPane(mTree);
-        mDetailPanel = new JPanel();
-        mTitleLabel = new Label();
-        mTitleTextField = new TextField();
-        mDescriptionLabel = new Label();
-        mDescriptionTextField = new TextField();
-        mUsernameLabel = new Label();
-        mUsernameTextField = new TextField();
-        mCopyUsernameButton = new Button();
-        mPasswordLabel = new Label();
-        mPasswordTextField = new TextField();
-        mCopyPasswordButton = new Button();
-        mToggleHidePasswordButton = new Button();
+        mPasswordsTreeView = new PasswordsTreeView();
 
         // setup components
         mSearchLabel.setText("Search");
         mSearchLabel.setAlignment(Label.RIGHT);
-        mTree.setRootVisible(false);
-        mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        mDetailPanel.setBackground(getBackground());
-        mTitleLabel.setText("Title");
-        mTitleLabel.setAlignment(Label.RIGHT);
-        mDescriptionLabel.setText("Description");
-        mDescriptionLabel.setAlignment(Label.RIGHT);
-        mUsernameLabel.setText("Username");
-        mUsernameLabel.setAlignment(Label.RIGHT);
-        mCopyUsernameButton.setLabel("Copy");
-        mPasswordLabel.setText("Password");
-        mPasswordLabel.setAlignment(Label.RIGHT);
-        setTextFieldEcho(mPasswordTextField, false);
-        mCopyPasswordButton.setLabel("Copy");
-        setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
+        mPasswordsTreeView.init();
 
         // add components
         this.add(mSearchLabel);
         this.add(mSearchTextField);
         this.add(mMainTextArea);
-        this.add(mTreeScrollPane);
-        this.add(mDetailPanel);
-        mDetailPanel.add(mTitleLabel);
-        mDetailPanel.add(mTitleTextField);
-        mDetailPanel.add(mDescriptionLabel);
-        mDetailPanel.add(mDescriptionTextField);
-        mDetailPanel.add(mUsernameLabel);
-        mDetailPanel.add(mUsernameTextField);
-        mDetailPanel.add(mCopyUsernameButton);
-        mDetailPanel.add(mPasswordLabel);
-        mDetailPanel.add(mPasswordTextField);
-        mDetailPanel.add(mCopyPasswordButton);
-        mDetailPanel.add(mToggleHidePasswordButton);
+        this.add(mPasswordsTreeView);
 
         // add listeners
         this.addComponentListener(new ComponentListener() {
@@ -151,52 +89,6 @@ public class PasswordsView
 
             public void keyReleased(KeyEvent evt) {
                 onSearchTextKeyReleased(evt);
-            }
-        });
-        mTree.addTreeSelectionListener(new TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                onTreeSelectionChanged(evt);
-            }
-        });
-        mDetailPanel.addComponentListener(new ComponentListener() {
-            public void componentResized(ComponentEvent evt) {
-            }
-
-            public void componentMoved(ComponentEvent evt) {
-            }
-
-            public void componentShown(ComponentEvent evt) {
-                onMainComponentResized(evt);
-            }
-
-            public void componentHidden(ComponentEvent evt) {
-            }
-
-        });
-        mTitleTextField.addKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent evt) {
-            }
-
-            public void keyPressed(KeyEvent evt) {
-            }
-
-            public void keyReleased(KeyEvent evt) {
-                onTitleTextKeyReleased(evt);
-            }
-        });
-        mCopyUsernameButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                copyTextToClipboard(mUsernameTextField.getText());
-            }
-        });
-        mCopyPasswordButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                copyTextToClipboard(mPasswordTextField.getText());
-            }
-        });
-        mToggleHidePasswordButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                toggleHidePassword();
             }
         });
 
@@ -225,103 +117,15 @@ public class PasswordsView
         int maiW = ctrsiz.width;
         int maiH = ctrsiz.height - schlblsiz.height - INNER_PAD;
 
-        // text area
-        mMainTextArea.setBounds(maiX, maiY, maiW, maiH); // full size
-
-        // tree scroll pane and detail panel
-        double lftpct = 0.333;
-        double rgtpct = 1.0 - lftpct;
-        mTreeScrollPane.setBounds(maiX, maiY, (int) (maiW * lftpct), maiH);
-        mDetailPanel.setBounds(
-                ((int) (maiW * lftpct)) + INNER_PAD,
-                maiY,
-                ((int) (maiW * rgtpct)) - INNER_PAD,
-                maiH);
-        Dimension dtlpnlsiz = mDetailPanel.getSize();
-
-        // layout fields in detail panel
-        int top = 0;
-        layoutLabelAndField(top, dtlpnlsiz.width, mTitleLabel, mTitleTextField);
-        top += TEXTFIELD_HEIGHT + INNER_PAD;
-        layoutLabelAndField(top, dtlpnlsiz.width, mDescriptionLabel, mDescriptionTextField);
-        top += TEXTFIELD_HEIGHT + INNER_PAD;
-        layoutLabelAndField(top, dtlpnlsiz.width, mUsernameLabel, mUsernameTextField);
-        top += TEXTFIELD_HEIGHT + INNER_PAD;
-        layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyUsernameButton });
-        top += TEXTFIELD_HEIGHT + INNER_PAD;
-        layoutLabelAndField(top, dtlpnlsiz.width, mPasswordLabel, mPasswordTextField);
-        top += TEXTFIELD_HEIGHT + INNER_PAD;
-        layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleHidePasswordButton });
-    }
-
-    private void layoutLabelAndField(int top, int containerWidth, Label label, TextField textField) {
-        label.setBounds(
-                0,
-                top,
-                Math.max(label.getPreferredSize().width, 100),
-                TEXTFIELD_HEIGHT);
-        Dimension lblsiz = label.getSize();
-        textField.setBounds(
-                lblsiz.width + INNER_PAD,
-                top,
-                containerWidth - (lblsiz.width + INNER_PAD),
-                TEXTFIELD_HEIGHT);
-    }
-
-    private void layoutActionButtons(int top, int containerWidth, Button[] buttons) {
-        int btnwth = 60;
-        for (int i = 0; i < buttons.length; i++) {
-            buttons[i].setBounds(
-                    containerWidth - btnwth - (INNER_PAD * i) - (btnwth * i),
-                    top,
-                    btnwth,
-                    TEXTFIELD_HEIGHT);
-        }
-    }
-
-    private void copyTextToClipboard(String text) {
-        Toolkit.getDefaultToolkit()
-                .getSystemClipboard()
-                .setContents(
-                        new StringSelection(text),
-                        null);
-    }
-
-    private void setTextFieldEcho(TextField textField, boolean show) {
-        if (show) {
-            textField.setEchoChar((char) 0);
-        } else {
-            textField.setEchoChar('*');
-        }
-    }
-
-    private void toggleTextFieldEcho(TextField textField) {
-        setTextFieldEcho(textField, !isEchoingPlainText(textField));
-    }
-
-    private boolean isEchoingPlainText(TextField textField) {
-        return textField.getEchoChar() == (char) 0;
-    }
-
-    private void setButtonLabelBasedOnEcho(Button button, TextField textField) {
-        if (isEchoingPlainText(textField)) {
-            button.setLabel("Hide");
-        } else {
-            button.setLabel("Show");
-        }
-    }
-
-    private void toggleHidePassword() {
-        toggleTextFieldEcho(mPasswordTextField);
-        setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
+        // set full size components
+        mMainTextArea.setBounds(maiX, maiY, maiW, maiH);
+        mPasswordsTreeView.setBounds(maiX, maiY, maiW, maiH);
     }
 
     public void setText(String text) {
         // first, try to parse it as JSON
         try {
-            PasswordCollection passwordCollection = fromJson(text);
-            TreeNode root = treeFromCollection(passwordCollection);
-            mTree.setModel(new javax.swing.tree.DefaultTreeModel(root));
+            mPasswordsTreeView.setText(text);
             mMode = Mode.TREE;
         } catch (Exception e) {
             // if it fails, just set the text
@@ -331,17 +135,14 @@ public class PasswordsView
         }
 
         // set visibility
-        mTreeScrollPane.setVisible(mMode == Mode.TREE);
         mMainTextArea.setVisible(mMode == Mode.TEXT);
-        mDetailPanel.setVisible(false);
+        mPasswordsTreeView.setVisible(mMode == Mode.TREE);
     }
 
     public String getText() {
         String text;
         if (mMode == Mode.TREE) {
-            DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
-            PasswordCollection passwordCollection = collectionFromTree(root);
-            text = toJson(passwordCollection);
+            text = mPasswordsTreeView.getText();
         } else {
             text = mMainTextArea.getText();
         }
@@ -408,128 +209,9 @@ public class PasswordsView
     }
 
     /**
-     * Instance Methods: Tree
-     * -------------------------------------------------------------------------
-     */
-
-    /** Create a PasswordCollection object give a tree root */
-    private PasswordCollection collectionFromTree(DefaultMutableTreeNode root) {
-
-        // create a new PasswordCollection and an array of items
-        PasswordCollection newPasswordCollection = new PasswordCollection();
-        newPasswordCollection.items = new PasswordItem[root.getChildCount()];
-
-        // iterate through the tree and populate the PasswordCollection and items array
-        int itemIndex = 0;
-        for (Enumeration<?> e = root.breadthFirstEnumeration(); e.hasMoreElements();) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
-            Object userObject = node.getUserObject();
-            if (userObject instanceof PasswordCollection) {
-                PasswordCollection originalPasswordCollection = (PasswordCollection) userObject;
-                newPasswordCollection.version = originalPasswordCollection.version;
-                newPasswordCollection.title = originalPasswordCollection.title;
-            } else if (userObject instanceof PasswordItem) {
-                PasswordItem item = (PasswordItem) userObject;
-                newPasswordCollection.items[itemIndex] = item;
-                itemIndex++;
-            }
-        }
-        System.out.println("Found [" + String.valueOf(itemIndex) + "] PasswordItems");
-
-        // return the new PasswordCollection
-        return newPasswordCollection;
-    }
-
-    private TreeNode treeFromCollection(PasswordCollection passwordCollection) {
-        // create the root node and give it the original password collection
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(passwordCollection);
-
-        // create a child node for each password item
-        for (PasswordItem passwordItem : passwordCollection.items) {
-            DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
-            root.add(passwordItemNode);
-        }
-
-        // return the root node
-        return root;
-    }
-
-    private void onTreeSelectionChanged(TreeSelectionEvent evt) {
-        PasswordItem passwordItem = getSelectedPasswordItem();
-        boolean isItemSelected = passwordItem != null;
-        mDetailPanel.setVisible(isItemSelected);
-        if (!isItemSelected) {
-            return;
-        }
-
-        // update the detail panel items
-        mTitleTextField.setText(passwordItem.ttl);
-        mDescriptionTextField.setText(passwordItem.dsc);
-        mUsernameTextField.setText(passwordItem.usr);
-        mPasswordTextField.setText(passwordItem.pwd);
-    }
-
-    private DefaultMutableTreeNode getSelectedTreeNode() {
-        return (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
-    }
-
-    private PasswordItem getSelectedPasswordItem() {
-        // get the selected node; do nothing if nothing is selected
-        DefaultMutableTreeNode node = getSelectedTreeNode();
-        if (node == null) {
-            return null;
-        }
-        // return the password item
-        return (PasswordItem) node.getUserObject();
-    }
-
-    /**
-     * Instance Methods: Password Item Input
-     * -------------------------------------------------------------------------
-     */
-
-    private void onTitleTextKeyReleased(KeyEvent evt) {
-        // get selected password item
-        PasswordItem passwordItem = getSelectedPasswordItem();
-        if (passwordItem == null) {
-            return;
-        }
-
-        // update its title field value
-        passwordItem.ttl = mTitleTextField.getText();
-
-        // refresh tree UI
-        mTree.getModel().valueForPathChanged(mTree.getSelectionPath(), passwordItem);
-    }
-
-    /**
      * Inner Classes
      * -------------------------------------------------------------------------
      */
-
-    class PasswordCollection {
-        private String title = ""; // title
-        private String version = ""; // file version
-        private PasswordItem[] items = null; // password items
-
-        PasswordCollection() {
-        } // no-args constructor
-    }
-
-    class PasswordItem {
-        private String ttl = ""; // title
-        private String dsc = ""; // description
-        private String usr = ""; // username
-        private String pwd = ""; // password
-        private String nts = ""; // notes
-
-        public String toString() {
-            return ttl;
-        }
-
-        PasswordItem() {
-        } // no-args constructor
-    }
 
     /**
      * Static Properties
@@ -539,8 +221,8 @@ public class PasswordsView
     private static final int SEARCH_DIRECTION_FORWARD = 1;
     private static final int SEARCH_DIRECTION_BACKWARD = 2;
 
-    private static final int TEXTFIELD_HEIGHT = 20;
-    private static final int INNER_PAD = 5;
+    public static final int TEXTFIELD_HEIGHT = 20;
+    public static final int INNER_PAD = 5;
 
     /**
      * Static Init & Main
@@ -552,15 +234,18 @@ public class PasswordsView
      * -------------------------------------------------------------------------
      */
 
-    private static PasswordCollection fromJson(String text) {
-        Gson gson = new Gson();
-        PasswordCollection passwordCollection = gson.fromJson(text, PasswordCollection.class);
-        return passwordCollection;
-    }
-
-    private static String toJson(PasswordCollection collection) {
-        Gson gson = new Gson();
-        return gson.toJson(collection);
+    public static void layoutLabelAndField(int top, int containerWidth, Label label, TextField textField) {
+        label.setBounds(
+                0,
+                top,
+                Math.max(label.getPreferredSize().width, 100),
+                TEXTFIELD_HEIGHT);
+        Dimension lblsiz = label.getSize();
+        textField.setBounds(
+                lblsiz.width + INNER_PAD,
+                top,
+                containerWidth - (lblsiz.width + INNER_PAD),
+                TEXTFIELD_HEIGHT);
     }
 
 } // END PUBLIC CLASS
