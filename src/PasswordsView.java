@@ -329,8 +329,6 @@ public class PasswordsView
         } else {
             text = mMainTextArea.getText();
         }
-        System.out.println("getText(): text is");
-        System.out.println(text);
         return text;
     }
 
