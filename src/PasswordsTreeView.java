@@ -8,7 +8,9 @@ import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 /**
@@ -289,11 +291,70 @@ public class PasswordsTreeView
     }
 
     public int getSelectedIndex() {
-        return 0;
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
+        DefaultMutableTreeNode selectedNode = getSelectedTreeNode();
+        if (selectedNode == null) {
+            return 0;
+        }
+        int index = root.getIndex(selectedNode);
+        return (index == -1) ? 0 : index;
     }
 
     public void searchAndSelect(String searchText, int startIndex, SearchDirection direction) {
-        return;
+        System.out.println("searchAndSelect, [" + searchText + "] " + startIndex);
+        System.out.println(searchText.length());
+
+        if (searchText.length() == 0) {
+            mTree.clearSelection();
+            return;
+        }
+
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
+
+        for (int index = getSelectedIndex(); index < root.getChildCount(); index++) {
+            DefaultMutableTreeNode searchNode = (DefaultMutableTreeNode) root.getChildAt(index);
+            Object userObject = searchNode.getUserObject();
+            if (userObject instanceof PasswordItem) {
+
+                PasswordItem item = (PasswordItem) userObject;
+
+                System.out.println("searching " + item.ttl);
+
+                if (item.containsText(searchText)) {
+                    TreeNode[] nodes = ((DefaultTreeModel) mTree.getModel()).getPathToRoot(searchNode);
+                    TreePath tpath = new TreePath(nodes);
+                    System.out.println(tpath);
+                    mTree.scrollPathToVisible(tpath);
+                    mTree.setSelectionPath(tpath);
+                    return;
+                }
+
+            }
+        }
+
+        // select nothing!
+        mTree.clearSelection();
+
+        // // search for text
+        // if (direction == SearchDirection.FORWARD) {
+        // // search forward, wrapping if necessary
+        // schidx = mantxt.indexOf(schtxt, startIndex);
+        // if (schidx == -1) {
+        // schidx = mantxt.indexOf(schtxt);
+        // } // start at the beginning
+        // } else {
+        // // search backward, wrapping if necessary
+        // schidx = mantxt.lastIndexOf(schtxt, startIndex);
+        // if (schidx == -1) {
+        // schidx = mantxt.lastIndexOf(schtxt);
+        // } // start at the end
+        // }
+
+        // // select text if found
+        // if (schidx >= 0) {
+        // this.setSelectionStart(schidx);
+        // this.setSelectionEnd(schidx + schtxt.length());
+        // }
     }
 
     public void reset() {
@@ -417,6 +478,15 @@ public class PasswordsTreeView
 
         public String toString() {
             return ttl;
+        }
+
+        private boolean containsText(String text) {
+            String lowerText = text.toLowerCase();
+            return ttl.toLowerCase().contains(lowerText)
+                    || dsc.toLowerCase().contains(lowerText)
+                    || usr.toLowerCase().contains(lowerText)
+                    || pwd.toLowerCase().contains(lowerText)
+                    || nts.toLowerCase().contains(lowerText);
         }
 
         PasswordItem() {

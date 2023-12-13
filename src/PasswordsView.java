@@ -158,6 +158,7 @@ public class PasswordsView
 
         // default: search as the user types
         int selectedIndex = currentView.getSelectedIndex();
+        /**/System.out.println(selectedIndex);
         SearchDirection searchDirection = SearchDirection.FORWARD;
 
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {

@@ -40,16 +40,6 @@ public class PasswordsTextView
         return this.getSelectionStart();
     }
 
-    /**
-     * Search for the current search text in the main text area, and select the
-     * first matching text found.
-     * Wrap if necessary.
-     *
-     * @param searchText The text to search for.
-     * @param startIndex The index at which to start searching.
-     * @param direction  A valid SEARCH_DIRECTION_ constant which indicates which
-     *                   direction to search.
-     */
     public void searchAndSelect(String searchText, int startIndex, SearchDirection direction) {
         String mantxt; // main text, converted to lowercase
         String schtxt; // search text, converted to lowercase
