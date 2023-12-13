@@ -164,10 +164,10 @@ public class PasswordsView
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             // ENTER: search for the next occurrence
             if ((evt.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == KeyEvent.SHIFT_DOWN_MASK) {
-                selectedIndex = mMainTextArea.getSelectedIndex() - 1;
+                selectedIndex = currentView.getSelectedIndex() - 1;
                 searchDirection = SearchDirection.BACKWARD;
             } else {
-                selectedIndex = mMainTextArea.getSelectedIndex() + 1;
+                selectedIndex = currentView.getSelectedIndex() + 1;
                 searchDirection = SearchDirection.FORWARD;
             }
         }

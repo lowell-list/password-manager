@@ -301,17 +301,19 @@ public class PasswordsTreeView
     }
 
     public void searchAndSelect(String searchText, int startIndex, SearchDirection direction) {
-        System.out.println("searchAndSelect, [" + searchText + "] " + startIndex);
-        System.out.println(searchText.length());
+        System.out.println("search for [" + searchText + "], starting at index " + startIndex);
+        System.out.println("search text length: " + searchText.length());
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
 
         if (searchText.length() == 0) {
             mTree.clearSelection();
             return;
         }
+        if (startIndex == -1) {
+            startIndex = root.getChildCount() - 1;
+        }
 
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
-
-        for (int index = getSelectedIndex(); index < root.getChildCount(); index++) {
+        for (int index = startIndex; index < root.getChildCount() && index >= 0;) {
             DefaultMutableTreeNode searchNode = (DefaultMutableTreeNode) root.getChildAt(index);
             Object userObject = searchNode.getUserObject();
             if (userObject instanceof PasswordItem) {
@@ -326,10 +328,16 @@ public class PasswordsTreeView
                     System.out.println(tpath);
                     mTree.scrollPathToVisible(tpath);
                     mTree.setSelectionPath(tpath);
+                    System.out.println("found item at index " + index);
+
+                    System.out.println("selected index is now " + getSelectedIndex());
+
                     return;
                 }
 
             }
+            // increment or decrement based on search direction
+            index = (direction == SearchDirection.FORWARD) ? index + 1 : index - 1;
         }
 
         // select nothing!
