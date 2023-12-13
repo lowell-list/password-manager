@@ -288,6 +288,17 @@ public class PasswordsTreeView
         return toJson(passwordCollection);
     }
 
+    public int getSelectedIndex() {
+        return 0;
+    }
+
+    public void searchAndSelect(String searchText, int startIndex, SearchDirection direction) {
+        return;
+    }
+
+    public void reset() {
+    }
+
     /**
      * Instance Methods: Tree
      * -------------------------------------------------------------------------
@@ -315,7 +326,7 @@ public class PasswordsTreeView
                 itemIndex++;
             }
         }
-        System.out.println("Found [" + String.valueOf(itemIndex) + "] PasswordItems");
+        System.out.println("found " + String.valueOf(itemIndex) + " PasswordItems");
 
         // return the new PasswordCollection
         return newPasswordCollection;

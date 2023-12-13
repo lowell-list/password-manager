@@ -25,7 +25,7 @@ public class PasswordsView
 
     private Label mSearchLabel;
     private TextField mSearchTextField;
-    private TextArea mMainTextArea;
+    private PasswordsTextView mMainTextArea;
     private PasswordsTreeView mPasswordsTreeView;
 
     private boolean mInitialized = false;
@@ -51,7 +51,7 @@ public class PasswordsView
         // instantiate components
         mSearchLabel = new Label();
         mSearchTextField = new TextField("");
-        mMainTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
+        mMainTextArea = new PasswordsTextView("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
         mPasswordsTreeView = new PasswordsTreeView();
 
         // setup components
@@ -96,11 +96,6 @@ public class PasswordsView
         mInitialized = true;
     }
 
-    public void reset() {
-        mMainTextArea.setCaretPosition(0);
-        mSearchTextField.requestFocus();
-    }
-
     public void onMainComponentResized(ComponentEvent evt) {
         if (!mInitialized) {
             return;
@@ -129,7 +124,7 @@ public class PasswordsView
             mMode = Mode.TREE;
         } catch (Exception e) {
             // if it fails, just set the text
-            System.out.println("Failed to parse JSON, reverting to text view.");
+            System.out.println("could not parse JSON; reverting to text view.");
             mMainTextArea.setText(text);
             mMode = Mode.TEXT;
         }
@@ -139,14 +134,17 @@ public class PasswordsView
         mPasswordsTreeView.setVisible(mMode == Mode.TREE);
     }
 
+    public IPasswordsView getCurrentPasswordsView() {
+        return (mMode == Mode.TREE) ? mPasswordsTreeView : mMainTextArea;
+    }
+
     public String getText() {
-        String text;
-        if (mMode == Mode.TREE) {
-            text = mPasswordsTreeView.getText();
-        } else {
-            text = mMainTextArea.getText();
-        }
-        return text;
+        return getCurrentPasswordsView().getText();
+    }
+
+    public void reset() {
+        getCurrentPasswordsView().reset();
+        mSearchTextField.requestFocus();
     }
 
     /**
@@ -155,57 +153,26 @@ public class PasswordsView
      */
 
     private void onSearchTextKeyReleased(KeyEvent evt) {
+        IPasswordsView currentView = getCurrentPasswordsView();
+        String searchText = mSearchTextField.getText();
+
+        // default: search as the user types
+        int selectedIndex = currentView.getSelectedIndex();
+        SearchDirection searchDirection = SearchDirection.FORWARD;
+
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            // search for the next occurrence
+            // ENTER: search for the next occurrence
             if ((evt.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == KeyEvent.SHIFT_DOWN_MASK) {
-                searchAndSelect(mMainTextArea.getSelectionStart() - 1, SEARCH_DIRECTION_BACKWARD);
+                selectedIndex = mMainTextArea.getSelectedIndex() - 1;
+                searchDirection = SearchDirection.BACKWARD;
             } else {
-                searchAndSelect(mMainTextArea.getSelectionStart() + 1, SEARCH_DIRECTION_FORWARD);
+                selectedIndex = mMainTextArea.getSelectedIndex() + 1;
+                searchDirection = SearchDirection.FORWARD;
             }
-        } else {
-            // search as letters are typed
-            searchAndSelect(mMainTextArea.getSelectionStart(), SEARCH_DIRECTION_FORWARD);
-        }
-    }
-
-    /**
-     * Search for the current search text in the main text area, and select the
-     * first matching text found.
-     * Wrap if necessary.
-     *
-     * @param startIndex The index at which to start searching.
-     * @param direction  A valid SEARCH_DIRECTION_ constant which indicates which
-     *                   direction to search.
-     */
-    private void searchAndSelect(int startIndex, int direction) {
-        String mantxt; // main text, converted to lowercase
-        String schtxt; // search text, converted to lowercase
-        int schidx; // search index
-
-        // get search text and main text
-        mantxt = mMainTextArea.getText().toLowerCase();
-        schtxt = mSearchTextField.getText().toLowerCase();
-
-        // search for text
-        if (direction == SEARCH_DIRECTION_FORWARD) {
-            // search forward, wrapping if necessary
-            schidx = mantxt.indexOf(schtxt, startIndex);
-            if (schidx == -1) {
-                schidx = mantxt.indexOf(schtxt);
-            } // start at the beginning
-        } else {
-            // search backward, wrapping if necessary
-            schidx = mantxt.lastIndexOf(schtxt, startIndex);
-            if (schidx == -1) {
-                schidx = mantxt.lastIndexOf(schtxt);
-            } // start at the end
         }
 
-        // select text if found
-        if (schidx >= 0) {
-            mMainTextArea.setSelectionStart(schidx);
-            mMainTextArea.setSelectionEnd(schidx + schtxt.length());
-        }
+        // search
+        currentView.searchAndSelect(searchText, selectedIndex, searchDirection);
     }
 
     /**
@@ -217,9 +184,6 @@ public class PasswordsView
      * Static Properties
      * -------------------------------------------------------------------------
      */
-
-    private static final int SEARCH_DIRECTION_FORWARD = 1;
-    private static final int SEARCH_DIRECTION_BACKWARD = 2;
 
     public static final int TEXTFIELD_HEIGHT = 20;
     public static final int INNER_PAD = 5;
