@@ -365,6 +365,10 @@ public class PasswordsTreeView
         // }
     }
 
+    public void filter(String filterText) {
+        System.out.println("filter not implemented for tree view");
+    }
+
     public void reset() {
     }
 

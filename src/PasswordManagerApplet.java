@@ -196,7 +196,6 @@ public class PasswordManagerApplet
 
         try {
             BufferedReader br;
-            String tmpstr;
 
             // load the existing properties file
             br = new BufferedReader(new FileReader(PROPERTIES_FILENAME));

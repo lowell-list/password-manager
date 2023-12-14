@@ -71,6 +71,10 @@ public class PasswordsTextView
         }
     }
 
+    public void filter(String filterText) {
+        System.out.println("filter not implemented for text view");
+    }
+
     public void reset() {
         this.setCaretPosition(0);
     }

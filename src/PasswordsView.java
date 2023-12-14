@@ -14,8 +14,12 @@ public class PasswordsView
      * -------------------------------------------------------------------------
      */
 
-    private enum Mode {
+    private enum ViewMode {
         TEXT, TREE
+    }
+
+    private enum FindMode {
+        SEARCH, FILTER
     }
 
     /**
@@ -23,13 +27,14 @@ public class PasswordsView
      * -------------------------------------------------------------------------
      */
 
-    private Label mSearchLabel;
-    private TextField mSearchTextField;
+    private Label mFindLabel;
+    private TextField mFindTextField;
     private PasswordsTextView mMainTextArea;
     private PasswordsTreeView mPasswordsTreeView;
 
     private boolean mInitialized = false;
-    private Mode mMode = Mode.TEXT;
+    private ViewMode mViewMode = ViewMode.TEXT;
+    private FindMode mFindMode = FindMode.SEARCH;
 
     /**
      * Instance Constructors
@@ -49,19 +54,19 @@ public class PasswordsView
     public void init() {
 
         // instantiate components
-        mSearchLabel = new Label();
-        mSearchTextField = new TextField("");
+        mFindLabel = new Label();
+        mFindTextField = new TextField();
         mMainTextArea = new PasswordsTextView("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
         mPasswordsTreeView = new PasswordsTreeView();
 
         // setup components
-        mSearchLabel.setText("Search");
-        mSearchLabel.setAlignment(Label.RIGHT);
+        mFindLabel.setText(getFindLabel());
+        mFindLabel.setAlignment(Label.RIGHT);
         mPasswordsTreeView.init();
 
         // add components
-        this.add(mSearchLabel);
-        this.add(mSearchTextField);
+        this.add(mFindLabel);
+        this.add(mFindTextField);
         this.add(mMainTextArea);
         this.add(mPasswordsTreeView);
 
@@ -80,7 +85,24 @@ public class PasswordsView
             public void componentHidden(ComponentEvent evt) {
             }
         });
-        mSearchTextField.addKeyListener(new KeyListener() {
+        mFindLabel.addMouseListener(new MouseListener() {
+            public void mouseClicked(MouseEvent evt) {
+                toggleFindMode();
+            }
+
+            public void mousePressed(MouseEvent evt) {
+            }
+
+            public void mouseReleased(MouseEvent evt) {
+            }
+
+            public void mouseEntered(MouseEvent evt) {
+            }
+
+            public void mouseExited(MouseEvent evt) {
+            }
+        });
+        mFindTextField.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent evt) {
             }
 
@@ -88,7 +110,7 @@ public class PasswordsView
             }
 
             public void keyReleased(KeyEvent evt) {
-                onSearchTextKeyReleased(evt);
+                onFindTextKeyReleased(evt);
             }
         });
 
@@ -103,8 +125,8 @@ public class PasswordsView
         Dimension ctrsiz = this.getSize();
 
         // search label and field (top)
-        layoutLabelAndField(0, ctrsiz.width, mSearchLabel, mSearchTextField);
-        Dimension schlblsiz = mSearchLabel.getSize();
+        layoutLabelAndField(0, ctrsiz.width, mFindLabel, mFindTextField);
+        Dimension schlblsiz = mFindLabel.getSize();
 
         // main area dimensions: used for text area, tree scroll pane, and detail panel
         int maiX = 0;
@@ -121,21 +143,19 @@ public class PasswordsView
         // first, try to parse it as JSON
         try {
             mPasswordsTreeView.setText(text);
-            mMode = Mode.TREE;
+            setViewMode(ViewMode.TREE);
+            setFindMode(FindMode.FILTER);
         } catch (Exception e) {
             // if it fails, just set the text
             System.out.println("could not parse JSON; reverting to text view.");
             mMainTextArea.setText(text);
-            mMode = Mode.TEXT;
+            setViewMode(ViewMode.TEXT);
+            setFindMode(FindMode.SEARCH);
         }
-
-        // set visibility
-        mMainTextArea.setVisible(mMode == Mode.TEXT);
-        mPasswordsTreeView.setVisible(mMode == Mode.TREE);
     }
 
     public IPasswordsView getCurrentPasswordsView() {
-        return (mMode == Mode.TREE) ? mPasswordsTreeView : mMainTextArea;
+        return (mViewMode == ViewMode.TREE) ? mPasswordsTreeView : mMainTextArea;
     }
 
     public String getText() {
@@ -144,36 +164,60 @@ public class PasswordsView
 
     public void reset() {
         getCurrentPasswordsView().reset();
-        mSearchTextField.requestFocus();
+        mFindTextField.requestFocus();
+    }
+
+    private void setViewMode(ViewMode newMode) {
+        mViewMode = newMode;
+        mMainTextArea.setVisible(mViewMode == ViewMode.TEXT);
+        mPasswordsTreeView.setVisible(mViewMode == ViewMode.TREE);
     }
 
     /**
-     * Instance Methods - Search
+     * Instance Methods - Find (Search / Filter)
      * -------------------------------------------------------------------------
      */
 
-    private void onSearchTextKeyReleased(KeyEvent evt) {
+    private void toggleFindMode() {
+        setFindMode((mFindMode == FindMode.SEARCH) ? FindMode.FILTER : FindMode.SEARCH);
+    }
+
+    private void setFindMode(FindMode newMode) {
+        mFindMode = newMode;
+        mFindLabel.setText(getFindLabel());
+    }
+
+    private String getFindLabel() {
+        return mFindMode == FindMode.SEARCH ? "Search" : "Filter";
+    }
+
+    private void onFindTextKeyReleased(KeyEvent evt) {
+        // get current view and "find text"
         IPasswordsView currentView = getCurrentPasswordsView();
-        String searchText = mSearchTextField.getText();
+        String findText = mFindTextField.getText();
 
-        // default: search as the user types
+        // if filtering, just pass it through directly
+        if (mFindMode == FindMode.FILTER) {
+            currentView.filter(findText);
+            return;
+        }
+
+        // search
+        // DEFAULT: search as the user types forward from the current selection
         int selectedIndex = currentView.getSelectedIndex();
-        /**/System.out.println(selectedIndex);
         SearchDirection searchDirection = SearchDirection.FORWARD;
-
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            // ENTER: search for the next occurrence
             if ((evt.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == KeyEvent.SHIFT_DOWN_MASK) {
+                // SHIFT + ENTER: search for the previous occurrence
                 selectedIndex = currentView.getSelectedIndex() - 1;
                 searchDirection = SearchDirection.BACKWARD;
             } else {
+                // ENTER: search for the next occurrence
                 selectedIndex = currentView.getSelectedIndex() + 1;
                 searchDirection = SearchDirection.FORWARD;
             }
         }
-
-        // search
-        currentView.searchAndSelect(searchText, selectedIndex, searchDirection);
+        currentView.searchAndSelect(findText, selectedIndex, searchDirection);
     }
 
     /**

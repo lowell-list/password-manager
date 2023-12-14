@@ -15,12 +15,13 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] show notes field
 - [x] don't show fields if no tree selection
 - [x] refactor to use text and tree views
-- [ ] implement search!
+- [x] implement tree search
+- [ ] implement tree filter
 - [ ] when editing password items, update the user object values
   - [x] title
   - [ ] description
   - [ ] username
   - [ ] password
   - [ ] notes
-- [ ] support nested password items
 - [ ] track if any modifications have been made; prompt user to save before closing
+- [ ] support nested password items
