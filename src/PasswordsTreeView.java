@@ -163,6 +163,39 @@ public class PasswordsTreeView
         onTitleTextKeyReleased(evt);
       }
     });
+    mDescriptionTextField.addKeyListener(new KeyListener() {
+      public void keyTyped(KeyEvent evt) {
+      }
+
+      public void keyPressed(KeyEvent evt) {
+      }
+
+      public void keyReleased(KeyEvent evt) {
+        onDescriptionTextKeyReleased(evt);
+      }
+    });
+    mUsernameTextField.addKeyListener(new KeyListener() {
+      public void keyTyped(KeyEvent evt) {
+      }
+
+      public void keyPressed(KeyEvent evt) {
+      }
+
+      public void keyReleased(KeyEvent evt) {
+        onUsernameTextKeyReleased(evt);
+      }
+    });
+    mPasswordTextField.addKeyListener(new KeyListener() {
+      public void keyTyped(KeyEvent evt) {
+      }
+
+      public void keyPressed(KeyEvent evt) {
+      }
+
+      public void keyReleased(KeyEvent evt) {
+        onPasswordTextKeyReleased(evt);
+      }
+    });
     mCopyUsernameButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         copyTextToClipboard(mUsernameTextField.getText());
@@ -466,18 +499,46 @@ public class PasswordsTreeView
    * ---------------------------------------------------------------------------
    */
 
-  private void onTitleTextKeyReleased(KeyEvent evt) {
+  private interface KeyReleasedHandlerLambda {
+    void handleKeyReleased(PasswordItem passwordItem);
+  }
+
+  private void onKeyReleasedGeneric(KeyEvent evt, KeyReleasedHandlerLambda handler) {
     // get selected password item
     PasswordItem passwordItem = getSelectedPasswordItem();
     if (passwordItem == null) {
       return;
     }
 
-    // update its title field value
-    passwordItem.ttl = mTitleTextField.getText();
+    // invoke handler
+    handler.handleKeyReleased(passwordItem);
 
     // refresh tree UI
     mTree.getModel().valueForPathChanged(mTree.getSelectionPath(), passwordItem);
+  }
+
+  private void onTitleTextKeyReleased(KeyEvent evt) {
+    onKeyReleasedGeneric(evt, (passwordItem) -> {
+      passwordItem.ttl = mTitleTextField.getText();
+    });
+  }
+
+  private void onDescriptionTextKeyReleased(KeyEvent evt) {
+    onKeyReleasedGeneric(evt, (passwordItem) -> {
+      passwordItem.dsc = mDescriptionTextField.getText();
+    });
+  }
+
+  private void onUsernameTextKeyReleased(KeyEvent evt) {
+    onKeyReleasedGeneric(evt, (passwordItem) -> {
+      passwordItem.usr = mUsernameTextField.getText();
+    });
+  }
+
+  private void onPasswordTextKeyReleased(KeyEvent evt) {
+    onKeyReleasedGeneric(evt, (passwordItem) -> {
+      passwordItem.pwd = mPasswordTextField.getText();
+    });
   }
 
   /**

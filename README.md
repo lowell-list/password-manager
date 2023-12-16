@@ -18,11 +18,13 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] implement tree search
 - [x] implement tree filter
 - [x] add emojis to UI items
-- [ ] when editing password items, update the user object values
+- [x] when editing password items, update the user object values
   - [x] title
-  - [ ] description
-  - [ ] username
-  - [ ] password
-  - [ ] notes
+  - [x] description
+  - [x] username
+  - [x] password
+- [ ] add support for notes text area
 - [ ] track if any modifications have been made; prompt user to save before closing
+  - [ ] or implement auto-save?
+- [ ] display version prominently in UI (title bar)
 - [ ] support nested password items
