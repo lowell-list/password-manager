@@ -23,7 +23,11 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
   - [x] description
   - [x] username
   - [x] password
-- [ ] add support for notes text area
+- [x] add support for notes text area
+- [ ] create item!
+- [ ] delete item!
+- [ ] toggle between plain text and JSON?
+- [ ] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [ ] track if any modifications have been made; prompt user to save before closing
   - [ ] or implement auto-save?
 - [ ] display version prominently in UI (title bar)
