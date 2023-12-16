@@ -16,7 +16,8 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] don't show fields if no tree selection
 - [x] refactor to use text and tree views
 - [x] implement tree search
-- [ ] implement tree filter
+- [x] implement tree filter
+- [ ] add emojis to UI items
 - [ ] when editing password items, update the user object values
   - [x] title
   - [ ] description

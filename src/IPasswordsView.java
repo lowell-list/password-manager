@@ -24,6 +24,7 @@ public interface IPasswordsView {
      */
     public void searchAndSelect(String searchText, int startIndex, SearchDirection direction);
 
+    /** Filter the passwords view using the given filter text. */
     public void filter(String filterText);
 
     public void reset();

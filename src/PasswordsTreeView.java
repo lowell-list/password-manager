@@ -9,6 +9,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -47,6 +48,7 @@ public class PasswordsTreeView
     private Button mToggleHidePasswordButton;
 
     private boolean mInitialized = false;
+    private TreeModel mUnfilteredTreeModel = null;
 
     /**
      * Instance Constructors
@@ -278,7 +280,8 @@ public class PasswordsTreeView
     public void setText(String text) {
         PasswordCollection passwordCollection = fromJson(text);
         TreeNode root = treeFromCollection(passwordCollection);
-        mTree.setModel(new javax.swing.tree.DefaultTreeModel(root));
+        mUnfilteredTreeModel = new DefaultTreeModel(root);
+        mTree.setModel(mUnfilteredTreeModel);
     }
 
     /**
@@ -342,31 +345,13 @@ public class PasswordsTreeView
 
         // select nothing!
         mTree.clearSelection();
-
-        // // search for text
-        // if (direction == SearchDirection.FORWARD) {
-        // // search forward, wrapping if necessary
-        // schidx = mantxt.indexOf(schtxt, startIndex);
-        // if (schidx == -1) {
-        // schidx = mantxt.indexOf(schtxt);
-        // } // start at the beginning
-        // } else {
-        // // search backward, wrapping if necessary
-        // schidx = mantxt.lastIndexOf(schtxt, startIndex);
-        // if (schidx == -1) {
-        // schidx = mantxt.lastIndexOf(schtxt);
-        // } // start at the end
-        // }
-
-        // // select text if found
-        // if (schidx >= 0) {
-        // this.setSelectionStart(schidx);
-        // this.setSelectionEnd(schidx + schtxt.length());
-        // }
     }
 
     public void filter(String filterText) {
-        System.out.println("filter not implemented for tree view");
+        TreeModel model = filterText.length() <= 0
+                ? mUnfilteredTreeModel
+                : filterTree(mUnfilteredTreeModel, filterText);
+        mTree.setModel(model);
     }
 
     public void reset() {
@@ -417,6 +402,34 @@ public class PasswordsTreeView
 
         // return the root node
         return root;
+    }
+
+    public TreeModel filterTree(TreeModel treeModel, String filterText) {
+
+        // create the new root node, and give it the same root user object
+        DefaultMutableTreeNode currentRoot = (DefaultMutableTreeNode) treeModel.getRoot();
+        DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(currentRoot.getUserObject());
+
+        // iterate the old tree's children and create a new tree, but only with
+        // the children that match the filter text
+        for (int index = 0; index < currentRoot.getChildCount(); index++) {
+
+            DefaultMutableTreeNode nextNode = (DefaultMutableTreeNode) currentRoot.getChildAt(index);
+            Object userObject = nextNode.getUserObject();
+            if (userObject instanceof PasswordItem) {
+
+                PasswordItem item = (PasswordItem) userObject;
+
+                if (item.containsText(filterText)) {
+                    System.out.println("filter match: " + item.ttl);
+                    DefaultMutableTreeNode newMatchingNode = new DefaultMutableTreeNode(item);
+                    newRoot.add(newMatchingNode);
+                }
+            }
+        }
+
+        // return the new filtered tree model
+        return new DefaultTreeModel(newRoot);
     }
 
     private void onTreeSelectionChanged(TreeSelectionEvent evt) {
