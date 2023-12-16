@@ -46,6 +46,7 @@ public class PasswordsTreeView
   private TextField mPasswordTextField;
   private Button mCopyPasswordButton;
   private Button mToggleHidePasswordButton;
+  private TextArea mNotesTextArea;
 
   private boolean mInitialized = false;
   private TreeModel mUnfilteredTreeModel = null;
@@ -82,12 +83,14 @@ public class PasswordsTreeView
     mPasswordTextField = new TextField();
     mCopyPasswordButton = new Button();
     mToggleHidePasswordButton = new Button();
+    mNotesTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
 
     // setup components
     mTree.setRootVisible(false);
     mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     mDetailPanel.setBackground(getBackground());
     mDetailPanel.setVisible(false);
+    mDetailPanel.setLayout(null); // get rid of layout manger
     mTitleLabel.setText("Title");
     mTitleLabel.setAlignment(Label.RIGHT);
     mDescriptionLabel.setText("Description");
@@ -115,6 +118,7 @@ public class PasswordsTreeView
     mDetailPanel.add(mPasswordTextField);
     mDetailPanel.add(mCopyPasswordButton);
     mDetailPanel.add(mToggleHidePasswordButton);
+    mDetailPanel.add(mNotesTextArea);
 
     // add listeners
     this.addComponentListener(new ComponentListener() {
@@ -126,7 +130,6 @@ public class PasswordsTreeView
       }
 
       public void componentShown(ComponentEvent evt) {
-        onMainComponentResized(evt);
       }
 
       public void componentHidden(ComponentEvent evt) {
@@ -145,7 +148,6 @@ public class PasswordsTreeView
       }
 
       public void componentShown(ComponentEvent evt) {
-        onMainComponentResized(evt);
       }
 
       public void componentHidden(ComponentEvent evt) {
@@ -211,6 +213,17 @@ public class PasswordsTreeView
         toggleHidePassword();
       }
     });
+    mNotesTextArea.addKeyListener(new KeyListener() {
+      public void keyTyped(KeyEvent evt) {
+      }
+
+      public void keyPressed(KeyEvent evt) {
+      }
+
+      public void keyReleased(KeyEvent evt) {
+        onNotesTextKeyReleased(evt);
+      }
+    });
 
     // finish
     mInitialized = true;
@@ -252,6 +265,10 @@ public class PasswordsTreeView
     PasswordsView.layoutLabelAndField(top, dtlpnlsiz.width, mPasswordLabel, mPasswordTextField);
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
     layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleHidePasswordButton });
+    top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
+
+    // finally, layout notes
+    mNotesTextArea.setBounds(0, top, dtlpnlsiz.width, dtlpnlsiz.height - top);
   }
 
   private void layoutActionButtons(int top, int containerWidth, Button[] buttons) {
@@ -467,6 +484,7 @@ public class PasswordsTreeView
     mDescriptionTextField.setText(passwordItem.dsc);
     mUsernameTextField.setText(passwordItem.usr);
     mPasswordTextField.setText(passwordItem.pwd);
+    mNotesTextArea.setText(passwordItem.nts);
   }
 
   private DefaultMutableTreeNode getSelectedTreeNode() {
@@ -527,6 +545,12 @@ public class PasswordsTreeView
   private void onPasswordTextKeyReleased(KeyEvent evt) {
     onKeyReleasedGeneric(evt, (passwordItem) -> {
       passwordItem.pwd = mPasswordTextField.getText();
+    });
+  }
+
+  private void onNotesTextKeyReleased(KeyEvent evt) {
+    onKeyReleasedGeneric(evt, (passwordItem) -> {
+      passwordItem.nts = mNotesTextArea.getText();
     });
   }
 
