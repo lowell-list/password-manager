@@ -1,31 +1,31 @@
 enum SearchDirection {
-    FORWARD,
-    BACKWARD,
+  FORWARD,
+  BACKWARD,
 }
 
 public interface IPasswordsView {
-    public String getText();
+  public String getText();
 
-    public void setText(String text);
+  public void setText(String text);
 
-    /**
-     * Get the currently selected index, or 0 if there is no selection.
-     */
-    public int getSelectedIndex();
+  /**
+   * Get the currently selected index, or 0 if there is no selection.
+   */
+  public int getSelectedIndex();
 
-    /**
-     * Search for the current search text in the passwords view, and select the
-     * first matching item found.
-     * Wrap if necessary.
-     *
-     * @param searchText The text to search for.
-     * @param startIndex The index at which to start searching.
-     * @param direction  A valid SearchDirection enum.
-     */
-    public void searchAndSelect(String searchText, int startIndex, SearchDirection direction);
+  /**
+   * Search for the current search text in the passwords view, and select the
+   * first matching item found.
+   * Wrap if necessary.
+   *
+   * @param searchText The text to search for.
+   * @param startIndex The index at which to start searching.
+   * @param direction  A valid SearchDirection enum.
+   */
+  public void searchAndSelect(String searchText, int startIndex, SearchDirection direction);
 
-    /** Filter the passwords view using the given filter text. */
-    public void filter(String filterText);
+  /** Filter the passwords view using the given filter text. */
+  public void filter(String filterText);
 
-    public void reset();
+  public void reset();
 }
