@@ -67,7 +67,7 @@ public class PasswordManager
     ins = frm.getInsets();
     frm.setSize(wid + ins.left + ins.right, hgt + ins.top + ins.bottom);
     frm.setMinimumSize(frm.getSize());
-    frm.setTitle("Password Manager ✨");
+    frm.setTitle("🔑 Password Manager 🔒");
     frm.setLocationByPlatform(true);
     frm.setVisible(true);
   }

@@ -60,7 +60,7 @@ public class PasswordsView
     mPasswordsTreeView = new PasswordsTreeView();
 
     // setup components
-    mFindLabel.setText(getFindLabel());
+    mFindLabel.setText(getFindLabelText());
     mFindLabel.setAlignment(Label.RIGHT);
     mPasswordsTreeView.init();
 
@@ -184,10 +184,10 @@ public class PasswordsView
 
   private void setFindMode(FindMode newMode) {
     mFindMode = newMode;
-    mFindLabel.setText(getFindLabel());
+    mFindLabel.setText(getFindLabelText());
   }
 
-  private String getFindLabel() {
+  private String getFindLabelText() {
     return mFindMode == FindMode.SEARCH ? "Search" : "Filter";
   }
 
