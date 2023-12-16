@@ -337,8 +337,6 @@ public class PasswordsTreeView
   }
 
   public void searchAndSelect(String searchText, int startIndex, SearchDirection direction) {
-    System.out.println("search for [" + searchText + "], starting at index " + startIndex);
-    System.out.println("search text length: " + searchText.length());
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
 
     if (searchText.length() == 0) {
@@ -356,18 +354,11 @@ public class PasswordsTreeView
 
         PasswordItem item = (PasswordItem) userObject;
 
-        System.out.println("searching " + item.ttl);
-
         if (item.containsText(searchText)) {
           TreeNode[] nodes = ((DefaultTreeModel) mTree.getModel()).getPathToRoot(searchNode);
           TreePath tpath = new TreePath(nodes);
-          System.out.println(tpath);
           mTree.scrollPathToVisible(tpath);
           mTree.setSelectionPath(tpath);
-          System.out.println("found item at index " + index);
-
-          System.out.println("selected index is now " + getSelectedIndex());
-
           return;
         }
 
@@ -417,7 +408,6 @@ public class PasswordsTreeView
         itemIndex++;
       }
     }
-    System.out.println("found " + String.valueOf(itemIndex) + " PasswordItems");
 
     // return the new PasswordCollection
     return newPasswordCollection;
@@ -454,7 +444,6 @@ public class PasswordsTreeView
         PasswordItem item = (PasswordItem) userObject;
 
         if (item.containsText(filterText)) {
-          System.out.println("filter match: " + item.ttl);
           DefaultMutableTreeNode newMatchingNode = new DefaultMutableTreeNode(item);
           newRoot.add(newMatchingNode);
         }

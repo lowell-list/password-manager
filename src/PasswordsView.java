@@ -147,7 +147,6 @@ public class PasswordsView
       setFindMode(FindMode.FILTER);
     } catch (Exception e) {
       // if it fails, just set the text
-      System.out.println("could not parse JSON; reverting to text view.");
       mMainTextArea.setText(text);
       setViewMode(ViewMode.TEXT);
       setFindMode(FindMode.SEARCH);
