@@ -430,10 +430,18 @@ public class PasswordsTreeView
   }
 
   public void filter(String filterText) {
+    // filter the tree and set a new model
     TreeModel model = filterText.length() <= 0
         ? mUnfilteredTreeModel
         : filterTree(mUnfilteredTreeModel, filterText);
     mTree.setModel(model);
+
+    // select first item if there is one
+    DefaultMutableTreeNode newRoot = (DefaultMutableTreeNode) model.getRoot();
+    if (newRoot.getChildCount() == 1) {
+      DefaultMutableTreeNode firstNode = (DefaultMutableTreeNode) newRoot.getChildAt(0);
+      mTree.setSelectionPath(new TreePath(firstNode.getPath()));
+    }
   }
 
   public void reset() {
