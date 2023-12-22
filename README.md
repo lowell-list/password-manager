@@ -24,11 +24,15 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
   - [x] username
   - [x] password
 - [x] add support for notes text area
+- [ ] show/hide button for notes
+- [ ] don't show exact number of characters in password field
 - [ ] create item!
 - [ ] delete item!
 - [ ] toggle between plain text and JSON?
 - [ ] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [ ] track if any modifications have been made; prompt user to save before closing
-  - [ ] or implement auto-save?
+  - [ ] or implement auto-save? (every 10 seconds?)
+  - [ ] show asterisk in title bar if unsaved changes
+  - [ ] add support for `cmd+s` to save
 - [ ] display version prominently in UI (title bar)
 - [ ] support nested password items
