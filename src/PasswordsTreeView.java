@@ -47,6 +47,7 @@ public class PasswordsTreeView
   private Button mCopyPasswordButton;
   private Button mToggleHidePasswordButton;
   private TextArea mNotesTextArea;
+  private Button mToggleHideNotesButton;
 
   private boolean mInitialized = false;
   private TreeModel mUnfilteredTreeModel = null;
@@ -84,6 +85,7 @@ public class PasswordsTreeView
     mCopyPasswordButton = new Button();
     mToggleHidePasswordButton = new Button();
     mNotesTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
+    mToggleHideNotesButton = new Button();
 
     // setup components
     mTree.setRootVisible(false);
@@ -103,6 +105,7 @@ public class PasswordsTreeView
     setTextFieldEcho(mPasswordTextField, false);
     mCopyPasswordButton.setLabel("Copy");
     setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
+    hideNotes(true);
 
     // add components
     this.add(mTreeScrollPane);
@@ -119,6 +122,7 @@ public class PasswordsTreeView
     mDetailPanel.add(mCopyPasswordButton);
     mDetailPanel.add(mToggleHidePasswordButton);
     mDetailPanel.add(mNotesTextArea);
+    mDetailPanel.add(mToggleHideNotesButton);
 
     // add listeners
     this.addComponentListener(new ComponentListener() {
@@ -221,13 +225,26 @@ public class PasswordsTreeView
       }
 
       public void keyReleased(KeyEvent evt) {
+        if (notesAreHidden()) {
+          return; // don't do anything if notes are hidden
+        }
         onNotesTextKeyReleased(evt);
+      }
+    });
+    mToggleHideNotesButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        hideNotes(!notesAreHidden());
       }
     });
 
     // finish
     mInitialized = true;
   }
+
+  /**
+   * Instance Methods - Layout
+   * ---------------------------------------------------------------------------
+   */
 
   public void onMainComponentResized(ComponentEvent evt) {
     if (!mInitialized) {
@@ -268,7 +285,10 @@ public class PasswordsTreeView
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
 
     // finally, layout notes
-    mNotesTextArea.setBounds(0, top, dtlpnlsiz.width, dtlpnlsiz.height - top);
+    mNotesTextArea.setBounds(0, top, dtlpnlsiz.width,
+        (dtlpnlsiz.height - top) - (PasswordsView.TEXTFIELD_HEIGHT * 4) - PasswordsView.INNER_PAD);
+    top += mNotesTextArea.getSize().height + PasswordsView.INNER_PAD;
+    layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mToggleHideNotesButton });
   }
 
   private void layoutActionButtons(int top, int containerWidth, Button[] buttons) {
@@ -282,13 +302,10 @@ public class PasswordsTreeView
     }
   }
 
-  private void copyTextToClipboard(String text) {
-    Toolkit.getDefaultToolkit()
-        .getSystemClipboard()
-        .setContents(
-            new StringSelection(text),
-            null);
-  }
+  /**
+   * Instance Methods - TextField utility
+   * ---------------------------------------------------------------------------
+   */
 
   private void setTextFieldEcho(TextField textField, boolean show) {
     if (show) {
@@ -317,6 +334,30 @@ public class PasswordsTreeView
   private void toggleHidePassword() {
     toggleTextFieldEcho(mPasswordTextField);
     setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
+  }
+
+  /**
+   * Instance Methods - TextArea utility
+   * ---------------------------------------------------------------------------
+   */
+
+  private void hideNotes(boolean hide) {
+    if (hide) {
+      // hide
+      mToggleHideNotesButton.setLabel("Show");
+      mNotesTextArea.setText("--- hidden ---");
+      mNotesTextArea.setEditable(false);
+    } else {
+      // show
+      mToggleHideNotesButton.setLabel("Hide");
+      PasswordItem passwordItem = getSelectedPasswordItem();
+      mNotesTextArea.setText(passwordItem != null ? passwordItem.nts : "");
+      mNotesTextArea.setEditable(true);
+    }
+  }
+
+  private boolean notesAreHidden() {
+    return mToggleHideNotesButton.getLabel() == "Show";
   }
 
   /**
@@ -485,6 +526,7 @@ public class PasswordsTreeView
     mUsernameTextField.setText(passwordItem.usr);
     mPasswordTextField.setText(passwordItem.pwd);
     mNotesTextArea.setText(passwordItem.nts);
+    hideNotes(true);
   }
 
   private DefaultMutableTreeNode getSelectedTreeNode() {
@@ -552,6 +594,19 @@ public class PasswordsTreeView
     onKeyReleasedGeneric(evt, (passwordItem) -> {
       passwordItem.nts = mNotesTextArea.getText();
     });
+  }
+
+  /**
+   * Instance Methods - general utility
+   * ---------------------------------------------------------------------------
+   */
+
+  private void copyTextToClipboard(String text) {
+    Toolkit.getDefaultToolkit()
+        .getSystemClipboard()
+        .setContents(
+            new StringSelection(text),
+            null);
   }
 
   /**

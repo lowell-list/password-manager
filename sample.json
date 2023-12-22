@@ -1,0 +1,34 @@
+{
+  "title": "Lowell's Passwords",
+  "version": "1.0.0",
+  "items": [
+    {
+      "ttl": "Bank of America",
+      "dsc": "first one",
+      "usr": "lowell.list+1@gmail.com",
+      "pwd": "password1",
+      "nts": "some notes"
+    },
+    {
+      "ttl": "Chase",
+      "dsc": "",
+      "usr": "lowell.list@gmail.com",
+      "pwd": "password1234",
+      "nts": ""
+    },
+    {
+      "ttl": "Musescore",
+      "dsc": "",
+      "usr": "lowell",
+      "pwd": "yo",
+      "nts": "great site for sheet music"
+    },
+    {
+      "ttl": "Spotify",
+      "dsc": "",
+      "usr": "ldog",
+      "pwd": "a-secret",
+      "nts": ""
+    }
+  ]
+}

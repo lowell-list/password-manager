@@ -24,7 +24,8 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
   - [x] username
   - [x] password
 - [x] add support for notes text area
-- [ ] show/hide button for notes
+- [ ] show/hide button for notes; hidden by default
+- [ ] when filtering tree down to one item, auto-select that one item and focus the password field
 - [ ] don't show exact number of characters in password field
 - [ ] create item!
 - [ ] delete item!
