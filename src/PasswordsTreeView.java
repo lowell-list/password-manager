@@ -32,8 +32,9 @@ public class PasswordsTreeView
    * ---------------------------------------------------------------------------
    */
 
-  private JScrollPane mTreeScrollPane;
   private JTree mTree;
+  private JScrollPane mTreeScrollPane;
+  private Button mAddItemButton;
   private JPanel mDetailPanel;
   private Label mTitleLabel;
   private TextField mTitleTextField;
@@ -50,7 +51,7 @@ public class PasswordsTreeView
   private Button mToggleHideNotesButton;
 
   private boolean mInitialized = false;
-  private TreeModel mUnfilteredTreeModel = null;
+  private DefaultTreeModel mUnfilteredTreeModel = null;
 
   /**
    * Instance Constructors
@@ -72,6 +73,7 @@ public class PasswordsTreeView
     // instantiate components
     mTree = new JTree();
     mTreeScrollPane = new JScrollPane(mTree);
+    mAddItemButton = new Button();
     mDetailPanel = new JPanel();
     mTitleLabel = new Label();
     mTitleTextField = new TextField();
@@ -90,6 +92,7 @@ public class PasswordsTreeView
     // setup components
     mTree.setRootVisible(false);
     mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    mAddItemButton.setLabel("+");
     mDetailPanel.setBackground(getBackground());
     mDetailPanel.setVisible(false);
     mDetailPanel.setLayout(null); // get rid of layout manger
@@ -109,6 +112,7 @@ public class PasswordsTreeView
 
     // add components
     this.add(mTreeScrollPane);
+    this.add(mAddItemButton);
     this.add(mDetailPanel);
     mDetailPanel.add(mTitleLabel);
     mDetailPanel.add(mTitleTextField);
@@ -144,6 +148,12 @@ public class PasswordsTreeView
         onTreeSelectionChanged(evt);
       }
     });
+    mAddItemButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        addNewPasswordItem();
+      }
+    });
+
     mDetailPanel.addComponentListener(new ComponentListener() {
       public void componentResized(ComponentEvent evt) {
       }
@@ -261,13 +271,21 @@ public class PasswordsTreeView
     // tree scroll pane and detail panel
     double lftpct = 0.333;
     double rgtpct = 1.0 - lftpct;
-    mTreeScrollPane.setBounds(maiX, maiY, (int) (maiW * lftpct), maiH);
+    mTreeScrollPane.setBounds(maiX, maiY, (int) (maiW * lftpct),
+        maiH - (PasswordsView.TEXTFIELD_HEIGHT * 3) - PasswordsView.INNER_PAD);
     mDetailPanel.setBounds(
         ((int) (maiW * lftpct)) + PasswordsView.INNER_PAD,
         maiY,
         ((int) (maiW * rgtpct)) - PasswordsView.INNER_PAD,
         maiH);
     Dimension dtlpnlsiz = mDetailPanel.getSize();
+
+    // add item button
+    mAddItemButton.setBounds(
+        maiX,
+        maiY + mTreeScrollPane.getSize().height + PasswordsView.INNER_PAD,
+        60,
+        PasswordsView.TEXTFIELD_HEIGHT);
 
     // layout fields in detail panel
     int top = 0;
@@ -284,9 +302,9 @@ public class PasswordsTreeView
     layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleHidePasswordButton });
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
 
-    // finally, layout notes
+    // layout notes
     mNotesTextArea.setBounds(0, top, dtlpnlsiz.width,
-        (dtlpnlsiz.height - top) - (PasswordsView.TEXTFIELD_HEIGHT * 4) - PasswordsView.INNER_PAD);
+        (dtlpnlsiz.height - top) - (PasswordsView.TEXTFIELD_HEIGHT * 3) - PasswordsView.INNER_PAD);
     top += mNotesTextArea.getSize().height + PasswordsView.INNER_PAD;
     layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mToggleHideNotesButton });
   }
@@ -552,6 +570,24 @@ public class PasswordsTreeView
     }
     // return the password item
     return (PasswordItem) node.getUserObject();
+  }
+
+  private void addNewPasswordItem() {
+    // clear any filters
+    this.reset();
+
+    // create a new password item
+    PasswordItem passwordItem = new PasswordItem();
+    passwordItem.ttl = "New Item";
+
+    // create a new node and add it to the tree
+    DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode) mUnfilteredTreeModel.getRoot();
+    mUnfilteredTreeModel.insertNodeInto(passwordItemNode, root, 0);
+
+    // scroll to and select the new node
+    mTree.scrollPathToVisible(new TreePath(passwordItemNode.getPath()));
+    mTree.setSelectionPath(new TreePath(passwordItemNode.getPath()));
   }
 
   /**

@@ -27,14 +27,19 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] show/hide button for notes; hidden by default
 - [x] when filtering tree down to one item, auto-select that one item
 - [x] clicking on filter / search should reset the tree
-- [ ] don't show exact number of characters in password field
-- [ ] create item!
+- [x] create item!
 - [ ] delete item!
-- [ ] toggle between plain text and JSON?
+- [ ] sort the tree alphabetically
 - [ ] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [ ] track if any modifications have been made; prompt user to save before closing
   - [ ] or implement auto-save? (every 10 seconds?)
   - [ ] show asterisk in title bar if unsaved changes
   - [ ] add support for `cmd+s` to save
 - [ ] display version prominently in UI (title bar)
+
+## Future
+
+- [ ] toggle between plain text and JSON views
+- [ ] add support for generating passwords
+- [ ] don't show exact number of characters in password field
 - [ ] support nested password items

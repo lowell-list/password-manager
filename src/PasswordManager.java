@@ -46,7 +46,7 @@ public class PasswordManager
     Frame frm; // main frame
     Insets ins; // temp object
     PasswordManagerApplet apt; // the applet we are converting to an application
-    int wid = 500, hgt = 600; // initial (and minimum) width and height for this application
+    int wid = 600, hgt = 600; // initial (and minimum) width and height for this application
 
     // create the main frame and add the appropriate listener
     frm = new Frame();
