@@ -35,6 +35,7 @@ public class PasswordsTreeView
   private JTree mTree;
   private JScrollPane mTreeScrollPane;
   private Button mAddItemButton;
+  private Button mDeleteItemButton;
   private JPanel mDetailPanel;
   private Label mTitleLabel;
   private TextField mTitleTextField;
@@ -74,6 +75,7 @@ public class PasswordsTreeView
     mTree = new JTree();
     mTreeScrollPane = new JScrollPane(mTree);
     mAddItemButton = new Button();
+    mDeleteItemButton = new Button();
     mDetailPanel = new JPanel();
     mTitleLabel = new Label();
     mTitleTextField = new TextField();
@@ -93,6 +95,8 @@ public class PasswordsTreeView
     mTree.setRootVisible(false);
     mTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     mAddItemButton.setLabel("+");
+    mDeleteItemButton.setLabel("-");
+    mDeleteItemButton.setVisible(false);
     mDetailPanel.setBackground(getBackground());
     mDetailPanel.setVisible(false);
     mDetailPanel.setLayout(null); // get rid of layout manger
@@ -113,6 +117,7 @@ public class PasswordsTreeView
     // add components
     this.add(mTreeScrollPane);
     this.add(mAddItemButton);
+    this.add(mDeleteItemButton);
     this.add(mDetailPanel);
     mDetailPanel.add(mTitleLabel);
     mDetailPanel.add(mTitleTextField);
@@ -153,7 +158,11 @@ public class PasswordsTreeView
         addNewPasswordItem();
       }
     });
-
+    mDeleteItemButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        System.out.println("delete button pressed");
+      }
+    });
     mDetailPanel.addComponentListener(new ComponentListener() {
       public void componentResized(ComponentEvent evt) {
       }
@@ -280,11 +289,17 @@ public class PasswordsTreeView
         maiH);
     Dimension dtlpnlsiz = mDetailPanel.getSize();
 
-    // add item button
+    // add/delete item buttons
+    int smlwth = 40;
     mAddItemButton.setBounds(
         maiX,
         maiY + mTreeScrollPane.getSize().height + PasswordsView.INNER_PAD,
-        60,
+        smlwth,
+        PasswordsView.TEXTFIELD_HEIGHT);
+    mDeleteItemButton.setBounds(
+        maiX + mTreeScrollPane.getSize().width - smlwth,
+        maiY + mTreeScrollPane.getSize().height + PasswordsView.INNER_PAD,
+        smlwth,
         PasswordsView.TEXTFIELD_HEIGHT);
 
     // layout fields in detail panel
@@ -545,6 +560,7 @@ public class PasswordsTreeView
     PasswordItem passwordItem = getSelectedPasswordItem();
     boolean isItemSelected = passwordItem != null;
     mDetailPanel.setVisible(isItemSelected);
+    mDeleteItemButton.setVisible(isItemSelected);
     if (!isItemSelected) {
       return;
     }
