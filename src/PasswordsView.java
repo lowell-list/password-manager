@@ -179,6 +179,7 @@ public class PasswordsView
 
   private void toggleFindMode() {
     setFindMode((mFindMode == FindMode.SEARCH) ? FindMode.FILTER : FindMode.SEARCH);
+    this.reset(); // also reset any search/filter that may be in progress
   }
 
   private void setFindMode(FindMode newMode) {

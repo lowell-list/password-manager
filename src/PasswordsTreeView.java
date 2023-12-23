@@ -439,12 +439,15 @@ public class PasswordsTreeView
     // select first item if there is one
     DefaultMutableTreeNode newRoot = (DefaultMutableTreeNode) model.getRoot();
     if (newRoot.getChildCount() == 1) {
+      // there is only one!
       DefaultMutableTreeNode firstNode = (DefaultMutableTreeNode) newRoot.getChildAt(0);
       mTree.setSelectionPath(new TreePath(firstNode.getPath()));
     }
   }
 
   public void reset() {
+    // reset tree model to unfiltered
+    mTree.setModel(mUnfilteredTreeModel);
   }
 
   /**
