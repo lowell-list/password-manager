@@ -160,7 +160,7 @@ public class PasswordsTreeView
     });
     mDeleteItemButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
-        System.out.println("delete button pressed");
+        deleteSelectedPasswordItem();
       }
     });
     mDetailPanel.addComponentListener(new ComponentListener() {
@@ -604,6 +604,29 @@ public class PasswordsTreeView
     // scroll to and select the new node
     mTree.scrollPathToVisible(new TreePath(passwordItemNode.getPath()));
     mTree.setSelectionPath(new TreePath(passwordItemNode.getPath()));
+  }
+
+  private void deleteSelectedPasswordItem() {
+    // get the selected node; do nothing if nothing is selected
+    DefaultMutableTreeNode node = getSelectedTreeNode();
+    if (node == null) {
+      return;
+    }
+    PasswordItem passwordItem = (PasswordItem) node.getUserObject();
+
+    // confirm deletion
+    int response = JOptionPane.showConfirmDialog(
+        this.getParent(),
+        "OK to delete item [" + passwordItem.ttl + "] ?",
+        "Warning",
+        JOptionPane.YES_NO_OPTION,
+        JOptionPane.WARNING_MESSAGE);
+    if (response != JOptionPane.YES_OPTION) {
+      return;
+    }
+
+    // delete the node
+    mUnfilteredTreeModel.removeNodeFromParent(node);
   }
 
   /**

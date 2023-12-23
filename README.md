@@ -28,7 +28,7 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] when filtering tree down to one item, auto-select that one item
 - [x] clicking on filter / search should reset the tree
 - [x] create item!
-- [ ] delete item!
+- [x] delete item!
 - [ ] sort the tree alphabetically
 - [ ] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [ ] track if any modifications have been made; prompt user to save before closing
