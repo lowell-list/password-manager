@@ -580,11 +580,6 @@ public class PasswordsTreeView
     hideNotes(true);
   }
 
-  /** Sort the tree alphabetically */
-  private void sortTree() {
-
-  }
-
   private DefaultMutableTreeNode getSelectedTreeNode() {
     return (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
   }
@@ -610,7 +605,8 @@ public class PasswordsTreeView
     // create a new node and add it to the tree
     DefaultMutableTreeNode passwordItemNode = new SortableTreeNode(passwordItem);
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) mUnfilteredTreeModel.getRoot();
-    mUnfilteredTreeModel.insertNodeInto(passwordItemNode, root, 0);
+    root.add(passwordItemNode);
+    mUnfilteredTreeModel.nodeStructureChanged(root);
 
     // scroll to and select the new node
     mTree.scrollPathToVisible(new TreePath(passwordItemNode.getPath()));
@@ -760,13 +756,6 @@ public class PasswordsTreeView
     @Override
     public void add(MutableTreeNode newChild) {
       super.add(newChild);
-      sortChildren();
-    }
-
-    /** not quite working right... */
-    @Override
-    public void insert(MutableTreeNode newChild, int childIndex) {
-      super.insert(newChild, childIndex);
       sortChildren();
     }
 
