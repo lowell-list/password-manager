@@ -2,13 +2,19 @@ import com.google.gson.Gson;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.Vector;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -517,11 +523,11 @@ public class PasswordsTreeView
 
   private TreeNode treeFromCollection(PasswordCollection passwordCollection) {
     // create the root node and give it the original password collection
-    DefaultMutableTreeNode root = new DefaultMutableTreeNode(passwordCollection);
+    DefaultMutableTreeNode root = new SortableTreeNode(passwordCollection);
 
     // create a child node for each password item
     for (PasswordItem passwordItem : passwordCollection.items) {
-      DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
+      DefaultMutableTreeNode passwordItemNode = new SortableTreeNode(passwordItem);
       root.add(passwordItemNode);
     }
 
@@ -533,7 +539,7 @@ public class PasswordsTreeView
 
     // create the new root node, and give it the same root user object
     DefaultMutableTreeNode currentRoot = (DefaultMutableTreeNode) treeModel.getRoot();
-    DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(currentRoot.getUserObject());
+    DefaultMutableTreeNode newRoot = new SortableTreeNode(currentRoot.getUserObject());
 
     // iterate the old tree's children and create a new tree, but only with
     // the children that match the filter text
@@ -546,7 +552,7 @@ public class PasswordsTreeView
         PasswordItem item = (PasswordItem) userObject;
 
         if (item.containsText(filterText)) {
-          DefaultMutableTreeNode newMatchingNode = new DefaultMutableTreeNode(item);
+          DefaultMutableTreeNode newMatchingNode = new SortableTreeNode(item);
           newRoot.add(newMatchingNode);
         }
       }
@@ -574,6 +580,11 @@ public class PasswordsTreeView
     hideNotes(true);
   }
 
+  /** Sort the tree alphabetically */
+  private void sortTree() {
+
+  }
+
   private DefaultMutableTreeNode getSelectedTreeNode() {
     return (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
   }
@@ -597,7 +608,7 @@ public class PasswordsTreeView
     passwordItem.ttl = "New Item";
 
     // create a new node and add it to the tree
-    DefaultMutableTreeNode passwordItemNode = new DefaultMutableTreeNode(passwordItem);
+    DefaultMutableTreeNode passwordItemNode = new SortableTreeNode(passwordItem);
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) mUnfilteredTreeModel.getRoot();
     mUnfilteredTreeModel.insertNodeInto(passwordItemNode, root, 0);
 
@@ -709,7 +720,7 @@ public class PasswordsTreeView
     } // no-args constructor
   }
 
-  class PasswordItem {
+  class PasswordItem implements Comparable<PasswordItem> {
     private String ttl = ""; // title
     private String dsc = ""; // description
     private String usr = ""; // username
@@ -729,14 +740,64 @@ public class PasswordsTreeView
           || nts.toLowerCase().contains(lowerText);
     }
 
+    @Override
+    public int compareTo(PasswordItem other) {
+      return ttl.compareTo(other.ttl);
+    }
+
     PasswordItem() {
     } // no-args constructor
+  }
+
+  /** An extension of DefaultMutableTreeNode that allows for sorting */
+  class SortableTreeNode
+      extends DefaultMutableTreeNode {
+
+    public SortableTreeNode(Object userObject) {
+      super(userObject);
+    }
+
+    @Override
+    public void add(MutableTreeNode newChild) {
+      super.add(newChild);
+      sortChildren();
+    }
+
+    /** not quite working right... */
+    @Override
+    public void insert(MutableTreeNode newChild, int childIndex) {
+      super.insert(newChild, childIndex);
+      sortChildren();
+    }
+
+    /** sort children vector in place */
+    private void sortChildren() {
+      @SuppressWarnings("unchecked") // ignore cast warning
+      java.util.List<SortableTreeNode> childrenCast = this.children;
+      Collections.sort(childrenCast, ALPHABETICAL_COMPARATOR);
+    }
+  }
+
+  static class AlphabeticalComparator
+      implements Comparator<SortableTreeNode> {
+    public AlphabeticalComparator() {
+      super();
+    }
+
+    @Override
+    public int compare(SortableTreeNode o1, SortableTreeNode o2) {
+      PasswordItem item1 = (PasswordItem) o1.getUserObject();
+      PasswordItem item2 = (PasswordItem) o2.getUserObject();
+      return item1.compareTo(item2);
+    }
   }
 
   /**
    * Static Properties
    * ---------------------------------------------------------------------------
    */
+
+  private static final AlphabeticalComparator ALPHABETICAL_COMPARATOR = new AlphabeticalComparator();
 
   /**
    * Static Init & Main
@@ -757,6 +818,15 @@ public class PasswordsTreeView
   private static String toJson(PasswordCollection collection) {
     Gson gson = new Gson();
     return gson.toJson(collection);
+  }
+
+  // from
+  // https://stackoverflow.com/questions/367626/how-do-i-fix-the-expression-of-type-list-needs-unchecked-conversion
+  private static <T> java.util.List<T> castList(Class<? extends T> clazz, Collection<?> c) {
+    java.util.List<T> r = new ArrayList<T>(c.size());
+    for (Object o : c)
+      r.add(clazz.cast(o));
+    return r;
   }
 
 } // End Public Class
