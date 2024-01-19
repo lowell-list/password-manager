@@ -27,6 +27,7 @@ public class PasswordsView
    * ---------------------------------------------------------------------------
    */
 
+  private Button mTextJSONButton;
   private Label mFindLabel;
   private TextField mFindTextField;
   private PasswordsTextView mMainTextArea;
@@ -54,17 +55,20 @@ public class PasswordsView
   public void init() {
 
     // instantiate components
+    mTextJSONButton = new Button();
     mFindLabel = new Label();
     mFindTextField = new TextField();
     mMainTextArea = new PasswordsTextView("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
     mPasswordsTreeView = new PasswordsTreeView();
 
     // setup components
+    mTextJSONButton.setLabel(getTextJSONButtonText());
     mFindLabel.setText(getFindLabelText());
     mFindLabel.setAlignment(Label.RIGHT);
     mPasswordsTreeView.init();
 
     // add components
+    this.add(mTextJSONButton);
     this.add(mFindLabel);
     this.add(mFindTextField);
     this.add(mMainTextArea);
@@ -83,6 +87,11 @@ public class PasswordsView
       }
 
       public void componentHidden(ComponentEvent evt) {
+      }
+    });
+    mTextJSONButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        onTextJSONButtonAction(evt);
       }
     });
     mFindLabel.addMouseListener(new MouseListener() {
@@ -124,8 +133,11 @@ public class PasswordsView
     }
     Dimension ctrsiz = this.getSize();
 
+    // text / json button (top right)
+    mTextJSONButton.setBounds(ctrsiz.width - 70, 0, 70, 20);
+
     // search label and field (top)
-    layoutLabelAndField(0, ctrsiz.width, mFindLabel, mFindTextField);
+    layoutLabelAndField(0, ctrsiz.width - (70 + INNER_PAD), mFindLabel, mFindTextField);
     Dimension schlblsiz = mFindLabel.getSize();
 
     // main area dimensions: used for text area, tree scroll pane, and detail panel
@@ -170,6 +182,19 @@ public class PasswordsView
     mViewMode = newMode;
     mMainTextArea.setVisible(mViewMode == ViewMode.TEXT);
     mPasswordsTreeView.setVisible(mViewMode == ViewMode.TREE);
+  }
+
+  /**
+   * Instance Methods - Text / JSON view toggle button
+   * ---------------------------------------------------------------------------
+   */
+
+  private String getTextJSONButtonText() {
+    return mViewMode == ViewMode.TEXT ? "JSON" : "Text";
+  }
+
+  private void onTextJSONButtonAction(ActionEvent evt) {
+    System.out.println("onTextJSONButtonAction");
   }
 
   /**
