@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.Vector;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -418,7 +417,7 @@ public class PasswordsTreeView
    * Convert current tree data to JSON; return as a String.
    */
   public String getText() {
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode) mTree.getModel().getRoot();
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode) mUnfilteredTreeModel.getRoot();
     PasswordCollection passwordCollection = collectionFromTree(root);
     return toJson(passwordCollection);
   }
