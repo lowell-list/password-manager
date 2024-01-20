@@ -27,7 +27,7 @@ public class PasswordsView
    * ---------------------------------------------------------------------------
    */
 
-  private Button mTextJSONButton;
+  private Button mTextTreeToggleButton;
   private Label mFindLabel;
   private TextField mFindTextField;
   private PasswordsTextView mMainTextArea;
@@ -55,20 +55,20 @@ public class PasswordsView
   public void init() {
 
     // instantiate components
-    mTextJSONButton = new Button();
+    mTextTreeToggleButton = new Button();
     mFindLabel = new Label();
     mFindTextField = new TextField();
     mMainTextArea = new PasswordsTextView("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
     mPasswordsTreeView = new PasswordsTreeView();
 
     // setup components
-    mTextJSONButton.setLabel(getTextJSONButtonText());
+    mTextTreeToggleButton.setLabel(getTextTreeToggleButtonLabelText());
     mFindLabel.setText(getFindLabelText());
     mFindLabel.setAlignment(Label.RIGHT);
     mPasswordsTreeView.init();
 
     // add components
-    this.add(mTextJSONButton);
+    this.add(mTextTreeToggleButton);
     this.add(mFindLabel);
     this.add(mFindTextField);
     this.add(mMainTextArea);
@@ -89,9 +89,9 @@ public class PasswordsView
       public void componentHidden(ComponentEvent evt) {
       }
     });
-    mTextJSONButton.addActionListener(new ActionListener() {
+    mTextTreeToggleButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
-        onTextJSONButtonAction(evt);
+        onTextTreeToggleButtonAction(evt);
       }
     });
     mFindLabel.addMouseListener(new MouseListener() {
@@ -133,8 +133,8 @@ public class PasswordsView
     }
     Dimension ctrsiz = this.getSize();
 
-    // text / json button (top right)
-    mTextJSONButton.setBounds(ctrsiz.width - 70, 0, 70, 20);
+    // text/tree toggle button (top right)
+    mTextTreeToggleButton.setBounds(ctrsiz.width - 70, 0, 70, 20);
 
     // search label and field (top)
     layoutLabelAndField(0, ctrsiz.width - (70 + INNER_PAD), mFindLabel, mFindTextField);
@@ -151,18 +151,32 @@ public class PasswordsView
     mPasswordsTreeView.setBounds(maiX, maiY, maiW, maiH);
   }
 
+  /**
+   * Set the passwords view text. If it can be parsed as JSON, then auto-display
+   * the tree view. Otherwise, fallback to plain text view.
+   */
   public void setText(String text) {
-    // first, try to parse it as JSON
-    try {
-      mPasswordsTreeView.setText(text);
-      setViewMode(ViewMode.TREE);
-      setFindMode(FindMode.FILTER);
-    } catch (Exception e) {
-      // if it fails, just set the text
-      mMainTextArea.setText(text);
-      setViewMode(ViewMode.TEXT);
-      setFindMode(FindMode.SEARCH);
+    setText(text, ViewMode.TREE);
+  }
+
+  /**
+   * Set the passwords view text, but try to use the given view mode.
+   */
+  private void setText(String text, ViewMode desriedViewMode) {
+    if (desriedViewMode == ViewMode.TREE) {
+      try {
+        // attempt to parse JSON and use tree view
+        mPasswordsTreeView.setText(text);
+        setViewMode(ViewMode.TREE);
+        return; // done
+      } catch (Exception e) {
+        // ignore and fall through to text mode
+      }
     }
+
+    // use text view mode by default
+    mMainTextArea.setText(text);
+    setViewMode(ViewMode.TEXT);
   }
 
   public IPasswordsView getCurrentPasswordsView() {
@@ -182,6 +196,8 @@ public class PasswordsView
     mViewMode = newMode;
     mMainTextArea.setVisible(mViewMode == ViewMode.TEXT);
     mPasswordsTreeView.setVisible(mViewMode == ViewMode.TREE);
+    setFindMode(mViewMode == ViewMode.TEXT ? FindMode.SEARCH : FindMode.FILTER);
+    updateTextTreeToggleButtonLabel();
   }
 
   /**
@@ -189,12 +205,19 @@ public class PasswordsView
    * ---------------------------------------------------------------------------
    */
 
-  private String getTextJSONButtonText() {
-    return mViewMode == ViewMode.TEXT ? "JSON" : "Text";
+  private String getTextTreeToggleButtonLabelText() {
+    // the button label
+    return mViewMode == ViewMode.TEXT ? "Tree" : "Text";
   }
 
-  private void onTextJSONButtonAction(ActionEvent evt) {
-    System.out.println("onTextJSONButtonAction");
+  private void updateTextTreeToggleButtonLabel() {
+    mTextTreeToggleButton.setLabel(getTextTreeToggleButtonLabelText());
+
+  }
+
+  private void onTextTreeToggleButtonAction(ActionEvent evt) {
+    String text = getText();
+    setText(text, mViewMode == ViewMode.TEXT ? ViewMode.TREE : ViewMode.TEXT);
   }
 
   /**
