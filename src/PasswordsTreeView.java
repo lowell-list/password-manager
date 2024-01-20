@@ -1,9 +1,9 @@
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -804,17 +804,10 @@ public class PasswordsTreeView
   }
 
   private static String toJson(PasswordCollection collection) {
-    Gson gson = new Gson();
+    GsonBuilder builder = new GsonBuilder();
+    builder.setPrettyPrinting();
+    Gson gson = builder.create();
     return gson.toJson(collection);
-  }
-
-  // from
-  // https://stackoverflow.com/questions/367626/how-do-i-fix-the-expression-of-type-list-needs-unchecked-conversion
-  private static <T> java.util.List<T> castList(Class<? extends T> clazz, Collection<?> c) {
-    java.util.List<T> r = new ArrayList<T>(c.size());
-    for (Object o : c)
-      r.add(clazz.cast(o));
-    return r;
   }
 
 } // End Public Class

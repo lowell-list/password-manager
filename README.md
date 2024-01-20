@@ -31,18 +31,17 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] delete item!
 - [x] sort the tree alphabetically
 - [x] make sure saving when filtered works OK (all items should be saved, not just filtered)
-- [ ] toggle between plain text and JSON views
+- [x] toggle between plain text and JSON views
 - [ ] display version and commit hash somewhere in the UI
+- [ ] display version prominently in UI (title bar)
 - [ ] resort the tree when changing the title of an item
 - [ ] track if any modifications have been made; prompt user to save before closing
   - [ ] or implement auto-save? (every 10 seconds?)
   - [ ] show asterisk in title bar if unsaved changes
   - [ ] add support for `cmd+s` to save
-- [ ] display version prominently in UI (title bar)
 
 ## Future
 
-- [ ] disallow characters ' and " in all fields
 - [ ] add support for generating passwords
 - [ ] don't show exact number of characters in password field
 - [ ] support nested password items
