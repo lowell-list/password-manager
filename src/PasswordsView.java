@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * PasswordsView: A view for displaying, searching, and editing passwords.
@@ -7,7 +9,7 @@ import java.awt.event.*;
  * view.
  */
 public class PasswordsView
-    extends javax.swing.JComponent {
+    extends javax.swing.JComponent implements ModifiedObserver {
 
   /**
    * Types
@@ -36,6 +38,7 @@ public class PasswordsView
   private boolean mInitialized = false;
   private ViewMode mViewMode = ViewMode.TEXT;
   private FindMode mFindMode = FindMode.SEARCH;
+  private List<ModifiedObserver> mObservers = new ArrayList<>();
 
   /**
    * Instance Constructors
@@ -120,6 +123,12 @@ public class PasswordsView
 
       public void keyReleased(KeyEvent evt) {
         onFindTextKeyReleased(evt);
+      }
+    });
+    mPasswordsTreeView.addModifiedObserver(this);
+    mMainTextArea.addTextListener(new TextListener() {
+      public void textValueChanged(TextEvent evt) {
+        onModified(getText().hashCode());
       }
     });
 
@@ -266,6 +275,26 @@ public class PasswordsView
       }
     }
     currentView.searchAndSelect(findText, selectedIndex, searchDirection);
+  }
+
+  /**
+   * Instance Methods - Observers
+   * ---------------------------------------------------------------------------
+   */
+
+  public void addModifiedObserver(ModifiedObserver observer) {
+    mObservers.add(observer);
+  }
+
+  public void removeModifiedObserver(ModifiedObserver observer) {
+    mObservers.remove(observer);
+  }
+
+  public void onModified(int hashCode) {
+    // pass it on to our own observers
+    for (ModifiedObserver observer : mObservers) {
+      observer.onModified(hashCode);
+    }
   }
 
   /**

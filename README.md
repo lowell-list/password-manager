@@ -33,14 +33,18 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [x] toggle between plain text and JSON views
 - [x] display version and commit hash prominently in UI (title bar)
+- [ ] track if any modifications have been made
+- [ ] track if decrypted or encrypted
+- [ ] Prompt user if not saved before closing if modified
+  - Save (or Encrypt and Save)
+  - Don't Save
+- [ ] Save button, only shows up if not saved:
+  - Encrypt, Save, and Close (if decrypted and unsaved)
+  - Save and Close (if encrypted and unsaved), no "are you sure?" prompt
+
+## Nice To Have
+
 - [ ] resort the tree when changing the title of an item
-- [ ] track if any modifications have been made; prompt user to save before closing
-  - [ ] or implement auto-save? (every 10 seconds?)
-  - [ ] show asterisk in title bar if unsaved changes
-  - [ ] add support for `cmd+s` to save
-
-## Future
-
 - [ ] add support for generating passwords
 - [ ] don't show exact number of characters in password field
 - [ ] support nested password items

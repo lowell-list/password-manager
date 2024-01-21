@@ -61,7 +61,7 @@ public class PasswordManager
     frm.addWindowListener(
         new java.awt.event.WindowAdapter() {
           public void windowClosing(java.awt.event.WindowEvent e) {
-            System.exit(0);
+            // System.exit(0);
           };
         });
 
@@ -75,7 +75,7 @@ public class PasswordManager
     ins = frm.getInsets();
     frm.setSize(wid + ins.left + ins.right, hgt + ins.top + ins.bottom);
     frm.setMinimumSize(frm.getSize());
-    frm.setTitle("🔑 Password Manager " + appVersion + ", " + getCommitHash + " 🔑");
+    frm.setTitle("🔑 Password Manager - " + appVersion + ", " + getCommitHash + " 🔑");
     frm.setLocationByPlatform(true);
     frm.setVisible(true);
   }

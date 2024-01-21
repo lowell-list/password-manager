@@ -4,9 +4,11 @@ import com.google.gson.GsonBuilder;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -58,6 +60,7 @@ public class PasswordsTreeView
 
   private boolean mInitialized = false;
   private DefaultTreeModel mUnfilteredTreeModel = null;
+  private List<ModifiedObserver> mObservers = new ArrayList<>();
 
   /**
    * Instance Constructors
@@ -341,6 +344,26 @@ public class PasswordsTreeView
   }
 
   /**
+   * Instance Methods - Observers
+   * ---------------------------------------------------------------------------
+   */
+
+  public void addModifiedObserver(ModifiedObserver observer) {
+    mObservers.add(observer);
+  }
+
+  public void removeModifiedObserver(ModifiedObserver observer) {
+    mObservers.remove(observer);
+  }
+
+  public void fireModified() {
+    String text = getText();
+    for (ModifiedObserver observer : mObservers) {
+      observer.onModified(text.hashCode());
+    }
+  }
+
+  /**
    * Instance Methods - TextField utility
    * ---------------------------------------------------------------------------
    */
@@ -411,6 +434,7 @@ public class PasswordsTreeView
     TreeNode root = treeFromCollection(passwordCollection);
     mUnfilteredTreeModel = new DefaultTreeModel(root);
     mTree.setModel(mUnfilteredTreeModel);
+    fireModified();
   }
 
   /**
@@ -610,6 +634,7 @@ public class PasswordsTreeView
     // scroll to and select the new node
     mTree.scrollPathToVisible(new TreePath(passwordItemNode.getPath()));
     mTree.setSelectionPath(new TreePath(passwordItemNode.getPath()));
+    fireModified();
   }
 
   private void deleteSelectedPasswordItem() {
@@ -633,6 +658,7 @@ public class PasswordsTreeView
 
     // delete the node
     mUnfilteredTreeModel.removeNodeFromParent(node);
+    fireModified();
   }
 
   /**
@@ -656,6 +682,7 @@ public class PasswordsTreeView
 
     // refresh tree UI
     mTree.getModel().valueForPathChanged(mTree.getSelectionPath(), passwordItem);
+    fireModified();
   }
 
   private void onTitleTextKeyReleased(KeyEvent evt) {

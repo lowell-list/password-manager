@@ -31,6 +31,8 @@ public class PasswordManagerApplet
 
   private boolean mInitialized = false;
   private Properties mProperties = null;
+  private boolean mIsModified = false;
+  private boolean mIsDecrypted = false;
 
   /**
    * Instance Constructors
@@ -107,6 +109,12 @@ public class PasswordManagerApplet
         onPasswordTextKeyReleased(evt);
       }
     });
+    mPasswordsView.addModifiedObserver(new ModifiedObserver() {
+      public void onModified(int hashCode) {
+        System.out.println("onModified(" + hashCode + ")");
+        mIsModified = true;
+      }
+    });
     mEncryptButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         onEncryptButtonAction(evt);
@@ -142,6 +150,19 @@ public class PasswordManagerApplet
   // initialize the applet
   public void start() {
     this.onMainComponentResized(null);
+  }
+
+  /**
+   * Instance Methods - Getters & Setters
+   * ---------------------------------------------------------------------------
+   */
+
+  public boolean isModified() {
+    return mIsModified;
+  }
+
+  public boolean isDecrypted() {
+    return mIsDecrypted;
   }
 
   /**
@@ -311,6 +332,9 @@ public class PasswordManagerApplet
     enableControls(true);
     mPasswordsView.reset();
     setStatusText("Decrypted (" + dcrstr.length() + ") characters.");
+    mIsDecrypted = true;
+    mIsModified = false;
+    System.out.println("modified = false");
   }
 
   private void onEncryptButtonAction(ActionEvent evt) {
@@ -348,6 +372,7 @@ public class PasswordManagerApplet
     enableControls(true);
     mPasswordsView.reset();
     setStatusText("Encrypted (" + wndtxt.length() + ") characters.");
+    mIsDecrypted = false;
   }
 
   private void onSaveButtonAction(ActionEvent evt) {
