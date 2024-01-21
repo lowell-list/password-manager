@@ -32,8 +32,7 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] sort the tree alphabetically
 - [x] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [x] toggle between plain text and JSON views
-- [ ] display version and commit hash somewhere in the UI
-- [ ] display version prominently in UI (title bar)
+- [x] display version and commit hash prominently in UI (title bar)
 - [ ] resort the tree when changing the title of an item
 - [ ] track if any modifications have been made; prompt user to save before closing
   - [ ] or implement auto-save? (every 10 seconds?)
