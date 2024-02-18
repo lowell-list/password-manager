@@ -254,6 +254,7 @@ public class PasswordManagerApplet
     mPasswordTextField.setEnabled(flg);
     mEncryptButton.setEnabled(flg);
     mDecryptButton.setEnabled(flg);
+    mSaveAndCloseButton.setEnabled(flg);
   }
 
   private String formatThrowable(Throwable thr) {
