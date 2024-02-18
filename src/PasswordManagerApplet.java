@@ -138,11 +138,7 @@ public class PasswordManagerApplet
 
     // load password file
     tmptxt = loadPasswordFileContents();
-    if (tmptxt != null) {
-      mPasswordsView.setText(tmptxt);
-      mOriginalContentHash = mPasswordsView.getText().hashCode();
-    }
-    mIsModified = false;
+    setMainText(tmptxt, false, false);
 
     // set focus to the password input box
     mPasswordTextField.requestFocus();
@@ -228,6 +224,26 @@ public class PasswordManagerApplet
    * Instance Methods - General Utility
    * ---------------------------------------------------------------------------
    */
+
+  /**
+   * Set the main area text and related tracking variables.
+   * 
+   * @param txt         The text to set.
+   * @param isDecrypted True if the text is already decrypted.
+   * @param isModified  True if the text should be considered as modified.
+   */
+  private void setMainText(String txt, boolean isDecrypted, boolean isModified) {
+    mPasswordsView.setText((txt != null) ? txt : "");
+    if (!isModified) {
+      mOriginalContentHash = mPasswordsView.getText().hashCode();
+    }
+    mIsDecrypted = isDecrypted;
+    mIsModified = isModified;
+
+    System.out.println("mIsDecrypted is " + String.valueOf(mIsDecrypted));
+    System.out.println("mIsModified = " + String.valueOf(mIsModified));
+    System.out.println("decryption hash is " + String.valueOf(mOriginalContentHash));
+  }
 
   private void setStatusText(String txt) {
     mStatusLabel.setText(txt);
@@ -355,7 +371,6 @@ public class PasswordManagerApplet
     setStatusText("Decrypting...");
     try {
       dcrstr = decrypt(pwdtxt, wndtxt);
-      mPasswordsView.setText(dcrstr);
     } catch (Exception exp) {
       setStatusText("Could not decrypt.");
       // exp.printStackTrace();
@@ -364,14 +379,10 @@ public class PasswordManagerApplet
     }
 
     // done
+    setMainText(dcrstr, true, false);
     enableControls(true);
     mPasswordsView.reset();
     setStatusText("Decrypted (" + dcrstr.length() + ") characters.");
-    mIsDecrypted = true;
-    mOriginalContentHash = mPasswordsView.getText().hashCode();
-    mIsModified = false;
-    System.out.println("modified = " + String.valueOf(mIsModified));
-    System.out.println("decryption hash is " + String.valueOf(mOriginalContentHash));
   }
 
   /**
@@ -382,6 +393,7 @@ public class PasswordManagerApplet
   private boolean onEncryptButtonAction(ActionEvent evt) {
     String wndtxt; // window text
     String pwdtxt; // password text
+    String cphtxt; // cipher text
 
     // get window and password text
     enableControls(false);
@@ -401,8 +413,7 @@ public class PasswordManagerApplet
     // encrypt
     setStatusText("Encrypting...");
     try {
-      String cphtxt = encrypt(pwdtxt, wndtxt);
-      mPasswordsView.setText(cphtxt);
+      cphtxt = encrypt(pwdtxt, wndtxt);
     } catch (Exception exp) {
       setStatusText("Could not encrypt.");
       // exp.printStackTrace();
@@ -411,10 +422,10 @@ public class PasswordManagerApplet
     }
 
     // done
+    setMainText(cphtxt, false, true);
     enableControls(true);
     mPasswordsView.reset();
     setStatusText("Encrypted (" + wndtxt.length() + ") characters.");
-    mIsDecrypted = false;
     return true;
   }
 
