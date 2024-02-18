@@ -33,12 +33,10 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] make sure saving when filtered works OK (all items should be saved, not just filtered)
 - [x] toggle between plain text and JSON views
 - [x] display version and commit hash prominently in UI (title bar)
-- [ ] track if any modifications have been made
-- [ ] track if decrypted or encrypted
-- [ ] Prompt user if not saved before closing if modified
-  - Save (or Encrypt and Save)
-  - Don't Save
-- [ ] Save button, only shows up if not saved:
+- [x] track if any modifications have been made
+- [x] track if decrypted or encrypted
+- [x] Prompt user if not saved before closing
+- [ ] Save and Close button, only enabled if modified:
   - Encrypt, Save, and Close (if decrypted and unsaved)
   - Save and Close (if encrypted and unsaved), no "are you sure?" prompt
 

@@ -357,9 +357,9 @@ public class PasswordsTreeView
   }
 
   public void fireModified() {
-    String text = getText();
+    int hashCode = getText().hashCode();
     for (ModifiedObserver observer : mObservers) {
-      observer.onModified(text.hashCode());
+      observer.onModified(hashCode);
     }
   }
 
@@ -682,6 +682,8 @@ public class PasswordsTreeView
 
     // refresh tree UI
     mTree.getModel().valueForPathChanged(mTree.getSelectionPath(), passwordItem);
+
+    // fire modified event
     fireModified();
   }
 

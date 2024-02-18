@@ -56,14 +56,8 @@ public class PasswordManager
     String appVersion = getManifestValue("Version-Number", "??");
     String getCommitHash = getManifestValue("Git-Commit-Hash", "??");
 
-    // create the main frame and add the appropriate listener
+    // create the main frame
     frm = new Frame();
-    frm.addWindowListener(
-        new java.awt.event.WindowAdapter() {
-          public void windowClosing(java.awt.event.WindowEvent e) {
-            // System.exit(0);
-          };
-        });
 
     // init
     apt = new PasswordManagerApplet();
@@ -78,6 +72,14 @@ public class PasswordManager
     frm.setTitle("🔑 Password Manager - " + appVersion + ", " + getCommitHash + " 🔑");
     frm.setLocationByPlatform(true);
     frm.setVisible(true);
+
+    // add frame listeners
+    frm.addWindowListener(
+        new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent e) {
+            apt.onExitRequested();
+          };
+        });
   }
 
   /**

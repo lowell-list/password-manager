@@ -33,6 +33,7 @@ public class PasswordManagerApplet
   private Properties mProperties = null;
   private boolean mIsModified = false;
   private boolean mIsDecrypted = false;
+  private int mOriginalContentHash = -1; // the hash code of the original content
 
   /**
    * Instance Constructors
@@ -112,7 +113,8 @@ public class PasswordManagerApplet
     mPasswordsView.addModifiedObserver(new ModifiedObserver() {
       public void onModified(int hashCode) {
         System.out.println("onModified(" + hashCode + ")");
-        mIsModified = true;
+        mIsModified = hashCode != mOriginalContentHash;
+        System.out.println("modified = " + String.valueOf(mIsModified));
       }
     });
     mEncryptButton.addActionListener(new ActionListener() {
@@ -127,7 +129,7 @@ public class PasswordManagerApplet
     });
     mSaveAndCloseButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
-        onSaveButtonAction(evt);
+        saveAndClose();
       }
     });
 
@@ -138,7 +140,9 @@ public class PasswordManagerApplet
     tmptxt = loadPasswordFileContents();
     if (tmptxt != null) {
       mPasswordsView.setText(tmptxt);
+      mOriginalContentHash = mPasswordsView.getText().hashCode();
     }
+    mIsModified = false;
 
     // set focus to the password input box
     mPasswordTextField.requestFocus();
@@ -150,19 +154,6 @@ public class PasswordManagerApplet
   // initialize the applet
   public void start() {
     this.onMainComponentResized(null);
-  }
-
-  /**
-   * Instance Methods - Getters & Setters
-   * ---------------------------------------------------------------------------
-   */
-
-  public boolean isModified() {
-    return mIsModified;
-  }
-
-  public boolean isDecrypted() {
-    return mIsDecrypted;
   }
 
   /**
@@ -187,6 +178,50 @@ public class PasswordManagerApplet
     mSaveAndCloseButton.setBounds(wth - 150, hgt - 25, 145, 20);
     mPasswordLabel.setBounds(5, hgt - 50, Math.max(mPasswordLabel.getPreferredSize().width, 70), 20);
     mPasswordTextField.setBounds(5 + mPasswordLabel.getSize().width + 10, hgt - 50, 100, 20);
+  }
+
+  /**
+   * Respond to user pressing the window close button.
+   */
+  public void onExitRequested() {
+    // just exit if nothing has changed
+    if (!mIsModified) {
+      System.exit(0);
+    }
+
+    // prompt for save and close
+    if (mIsDecrypted) {
+      // decrypted: prompt for encrypt, save and close
+      int rsp = JOptionPane.showConfirmDialog(
+          this.getParent(),
+          "Encrypt and save changes before closing?",
+          "Warning",
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE);
+      if (rsp == JOptionPane.YES_OPTION) {
+        if (onEncryptButtonAction(null)) {
+          saveAndClose();
+        }
+      } else if (rsp == JOptionPane.CANCEL_OPTION) {
+        return; // cancel: do not exit
+      }
+    } else {
+      // encrypted: prompt for save and close
+      int rsp = JOptionPane.showConfirmDialog(
+          this.getParent(),
+          "Save changes before closing?",
+          "Warning",
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE);
+      if (rsp == JOptionPane.YES_OPTION) {
+        saveAndClose();
+      } else if (rsp == JOptionPane.CANCEL_OPTION) {
+        return; // cancel: do not exit
+      }
+    }
+
+    // exit!
+    System.exit(0);
   }
 
   /**
@@ -333,11 +368,18 @@ public class PasswordManagerApplet
     mPasswordsView.reset();
     setStatusText("Decrypted (" + dcrstr.length() + ") characters.");
     mIsDecrypted = true;
+    mOriginalContentHash = mPasswordsView.getText().hashCode();
     mIsModified = false;
-    System.out.println("modified = false");
+    System.out.println("modified = " + String.valueOf(mIsModified));
+    System.out.println("decryption hash is " + String.valueOf(mOriginalContentHash));
   }
 
-  private void onEncryptButtonAction(ActionEvent evt) {
+  /**
+   * Handle the Encrypt button action.
+   * 
+   * @return true if the action was successful, false otherwise.
+   */
+  private boolean onEncryptButtonAction(ActionEvent evt) {
     String wndtxt; // window text
     String pwdtxt; // password text
 
@@ -347,13 +389,13 @@ public class PasswordManagerApplet
     if (wndtxt.length() == 0) {
       setStatusText("Text Area cannot be blank.");
       enableControls(true);
-      return;
+      return false;
     }
     pwdtxt = mPasswordTextField.getText();
     if (pwdtxt.length() == 0) {
       setStatusText("Password cannot be blank.");
       enableControls(true);
-      return;
+      return false;
     }
 
     // encrypt
@@ -365,7 +407,7 @@ public class PasswordManagerApplet
       setStatusText("Could not encrypt.");
       // exp.printStackTrace();
       enableControls(true);
-      return;
+      return false;
     }
 
     // done
@@ -373,10 +415,13 @@ public class PasswordManagerApplet
     mPasswordsView.reset();
     setStatusText("Encrypted (" + wndtxt.length() + ") characters.");
     mIsDecrypted = false;
+    return true;
   }
 
-  private void onSaveButtonAction(ActionEvent evt) {
-    int rsp; // response code
+  /**
+   * Handle the Save and Close button action.
+   */
+  private void saveAndClose() {
     File filpwd;
     File filbak;
     FileWriter fw;
@@ -387,18 +432,18 @@ public class PasswordManagerApplet
       filbak = new File("PasswordsBackup.txt");
       filpwd = new File(mProperties.getProperty(PRPNAM_PWDFILPTH));
 
-      // confirm if the password file already exists
-      if (filpwd.exists()) {
-        rsp = JOptionPane.showConfirmDialog(
-            this.getParent(),
-            "Continue with save? Existing file will be overwritten.",
-            "Warning",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
-        if (rsp != JOptionPane.YES_OPTION) {
-          return;
-        }
-      }
+      // if the password file already exists, confirm overwrite
+      // if (filpwd.exists()) {
+      // int rsp = JOptionPane.showConfirmDialog(
+      // this.getParent(),
+      // "Continue with save? Existing file will be overwritten.",
+      // "Warning",
+      // JOptionPane.YES_NO_OPTION,
+      // JOptionPane.WARNING_MESSAGE);
+      // if (rsp != JOptionPane.YES_OPTION) {
+      // return;
+      // }
+      // }
 
       // delete and rename
       if (filbak.exists()) {
