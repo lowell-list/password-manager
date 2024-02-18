@@ -36,9 +36,7 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 - [x] track if any modifications have been made
 - [x] track if decrypted or encrypted
 - [x] Prompt user if not saved before closing
-- [ ] Save and Close button, only enabled if modified:
-  - Encrypt, Save, and Close (if decrypted and unsaved)
-  - Save and Close (if encrypted and unsaved), no "are you sure?" prompt
+- [x] Add warning to Save and Close button if it's pressed and text is not decrypted
 
 ## Nice To Have
 

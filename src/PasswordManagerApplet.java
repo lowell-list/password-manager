@@ -444,6 +444,19 @@ public class PasswordManagerApplet
       filbak = new File("PasswordsBackup.txt");
       filpwd = new File(mProperties.getProperty(PRPNAM_PWDFILPTH));
 
+      // if not encrypted, confirm save and close
+      if (mIsDecrypted) {
+        int rsp = JOptionPane.showConfirmDialog(
+            this.getParent(),
+            "Not encrypted. Continue with save?",
+            "Warning",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        if (rsp != JOptionPane.YES_OPTION) {
+          return;
+        }
+      }
+
       // if the password file already exists, confirm overwrite
       // if (filpwd.exists()) {
       // int rsp = JOptionPane.showConfirmDialog(
