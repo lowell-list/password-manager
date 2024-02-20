@@ -112,9 +112,7 @@ public class PasswordManagerApplet
     });
     mPasswordsView.addModifiedObserver(new ModifiedObserver() {
       public void onModified(int hashCode) {
-        System.out.println("onModified(" + hashCode + ")");
         mIsModified = hashCode != mOriginalContentHash;
-        System.out.println("modified = " + String.valueOf(mIsModified));
       }
     });
     mEncryptButton.addActionListener(new ActionListener() {
@@ -239,10 +237,6 @@ public class PasswordManagerApplet
     }
     mIsDecrypted = isDecrypted;
     mIsModified = isModified;
-
-    System.out.println("mIsDecrypted is " + String.valueOf(mIsDecrypted));
-    System.out.println("mIsModified = " + String.valueOf(mIsModified));
-    System.out.println("decryption hash is " + String.valueOf(mOriginalContentHash));
   }
 
   private void setStatusText(String txt) {
