@@ -19,6 +19,7 @@ public class PasswordsTextView
 
   public PasswordsTextView(String text, int rows, int columns, int scrollbars) {
     super(text, rows, columns, scrollbars);
+    this.setFont(new Font("courier", Font.PLAIN, 12));
   }
 
   /**

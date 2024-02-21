@@ -98,6 +98,7 @@ public class PasswordsTreeView
     mCopyPasswordButton = new Button();
     mToggleHidePasswordButton = new Button();
     mNotesTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
+    mNotesTextArea.setFont(new Font("courier", Font.PLAIN, 12));
     mToggleHideNotesButton = new Button();
 
     // setup components
