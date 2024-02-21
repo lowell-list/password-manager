@@ -54,7 +54,8 @@ public class PasswordManager
 
     // get properties from the manifest
     String appVersion = getManifestValue("Version-Number", "??");
-    String getCommitHash = getManifestValue("Git-Commit-Hash", "??");
+    String gitCommitHash = getManifestValue("Git-Commit-Hash", "??");
+    System.out.println("Password Manager - " + appVersion + "+" + gitCommitHash);
 
     // create the main frame
     frm = new Frame();
@@ -69,7 +70,7 @@ public class PasswordManager
     ins = frm.getInsets();
     frm.setSize(wid + ins.left + ins.right, hgt + ins.top + ins.bottom);
     frm.setMinimumSize(frm.getSize());
-    frm.setTitle("🔑 Password Manager - " + appVersion + ", " + getCommitHash + " 🔑");
+    frm.setTitle("🔑 Password Manager - " + appVersion + " 🔑");
     frm.setLocationByPlatform(true);
     frm.setVisible(true);
 
