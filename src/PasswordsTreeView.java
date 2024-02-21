@@ -61,6 +61,7 @@ public class PasswordsTreeView
   private boolean mInitialized = false;
   private DefaultTreeModel mUnfilteredTreeModel = null;
   private List<ModifiedObserver> mObservers = new ArrayList<>();
+  private boolean mEnableTreeSelectionListener = true;
 
   /**
    * Instance Constructors
@@ -158,7 +159,9 @@ public class PasswordsTreeView
     });
     mTree.addTreeSelectionListener(new TreeSelectionListener() {
       public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-        onTreeSelectionChanged(evt);
+        if (mEnableTreeSelectionListener) {
+          onTreeSelectionChanged(evt);
+        }
       }
     });
     mAddItemButton.addActionListener(new ActionListener() {
@@ -603,6 +606,45 @@ public class PasswordsTreeView
     hideNotes(true);
   }
 
+  /**
+   * Sort the tree model, maintaining the currently selected TreeNode.
+   * 
+   * During the sorting process, we disable the tree selection listener so that
+   * text field focus does not get messed up.
+   */
+  private void sortTreeModel() {
+    // get the selected tree node, current tree model and root node
+    DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
+    DefaultTreeModel treeModel = (DefaultTreeModel) mTree.getModel();
+    SortableTreeNode root = (SortableTreeNode) treeModel.getRoot();
+    if (root == null) {
+      return;
+    }
+
+    // turn off our tree selection listener callback as we change selections
+    mEnableTreeSelectionListener = false;
+
+    // sort children for the visible tree model, and (if needed) also for the
+    // non-visible unfiltered tree model
+    root.sortChildren();
+    treeModel.nodeStructureChanged(root);
+    if (treeModel != mUnfilteredTreeModel) {
+      SortableTreeNode invisibleRoot = (SortableTreeNode) mUnfilteredTreeModel.getRoot();
+      invisibleRoot.sortChildren();
+      mUnfilteredTreeModel.nodeStructureChanged(invisibleRoot);
+    }
+
+    // scroll to and re-select the node
+    if (selectedTreeNode != null) {
+      TreePath treePath = new TreePath(selectedTreeNode.getPath());
+      mTree.scrollPathToVisible(treePath);
+      mTree.setSelectionPath(treePath);
+    }
+
+    // finally, turn on our tree selection listener callback
+    mEnableTreeSelectionListener = true;
+  }
+
   private DefaultMutableTreeNode getSelectedTreeNode() {
     return (DefaultMutableTreeNode) mTree.getLastSelectedPathComponent();
   }
@@ -690,6 +732,7 @@ public class PasswordsTreeView
   private void onTitleTextKeyReleased(KeyEvent evt) {
     onKeyReleasedGeneric(evt, (passwordItem) -> {
       passwordItem.ttl = mTitleTextField.getText();
+      sortTreeModel();
     });
   }
 
@@ -788,7 +831,7 @@ public class PasswordsTreeView
     }
 
     /** sort children vector in place */
-    private void sortChildren() {
+    public void sortChildren() {
       @SuppressWarnings("unchecked") // ignore cast warning
       java.util.List<SortableTreeNode> childrenCast = this.children;
       Collections.sort(childrenCast, ALPHABETICAL_COMPARATOR);

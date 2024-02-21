@@ -40,7 +40,7 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 
 ## Nice To Have
 
-- [ ] resort the tree when changing the title of an item
+- [x] resort the tree when changing the title of an item
 - [ ] add support for generating passwords
 - [ ] don't show exact number of characters in password field
 - [ ] support nested password items
