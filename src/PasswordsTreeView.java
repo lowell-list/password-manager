@@ -54,7 +54,7 @@ public class PasswordsTreeView
   private Label mPasswordLabel;
   private TextField mPasswordTextField;
   private Button mCopyPasswordButton;
-  private Button mToggleHidePasswordButton;
+  private Button mToggleShowPasswordButton;
   private TextArea mNotesTextArea;
   private Button mToggleHideNotesButton;
 
@@ -96,7 +96,7 @@ public class PasswordsTreeView
     mPasswordLabel = new Label();
     mPasswordTextField = new TextField();
     mCopyPasswordButton = new Button();
-    mToggleHidePasswordButton = new Button();
+    mToggleShowPasswordButton = new Button();
     mNotesTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
     mNotesTextArea.setFont(new Font("courier", Font.PLAIN, 12));
     mToggleHideNotesButton = new Button();
@@ -119,9 +119,8 @@ public class PasswordsTreeView
     mCopyUsernameButton.setLabel("Copy");
     mPasswordLabel.setText("Password");
     mPasswordLabel.setAlignment(Label.RIGHT);
-    setTextFieldEcho(mPasswordTextField, false);
     mCopyPasswordButton.setLabel("Copy");
-    setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
+    setShowPassword(false);
     hideNotes(true);
 
     // add components
@@ -139,7 +138,7 @@ public class PasswordsTreeView
     mDetailPanel.add(mPasswordLabel);
     mDetailPanel.add(mPasswordTextField);
     mDetailPanel.add(mCopyPasswordButton);
-    mDetailPanel.add(mToggleHidePasswordButton);
+    mDetailPanel.add(mToggleShowPasswordButton);
     mDetailPanel.add(mNotesTextArea);
     mDetailPanel.add(mToggleHideNotesButton);
 
@@ -243,9 +242,9 @@ public class PasswordsTreeView
         copyTextToClipboard(mPasswordTextField.getText());
       }
     });
-    mToggleHidePasswordButton.addActionListener(new ActionListener() {
+    mToggleShowPasswordButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
-        toggleHidePassword();
+        toggleShowPassword();
       }
     });
     mNotesTextArea.addKeyListener(new KeyListener() {
@@ -326,7 +325,7 @@ public class PasswordsTreeView
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
     PasswordsView.layoutLabelAndField(top, dtlpnlsiz.width, mPasswordLabel, mPasswordTextField);
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
-    layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleHidePasswordButton });
+    layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleShowPasswordButton });
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
 
     // layout notes
@@ -380,10 +379,6 @@ public class PasswordsTreeView
     }
   }
 
-  private void toggleTextFieldEcho(TextField textField) {
-    setTextFieldEcho(textField, !isEchoingPlainText(textField));
-  }
-
   private boolean isEchoingPlainText(TextField textField) {
     return textField.getEchoChar() == (char) 0;
   }
@@ -396,9 +391,13 @@ public class PasswordsTreeView
     }
   }
 
-  private void toggleHidePassword() {
-    toggleTextFieldEcho(mPasswordTextField);
-    setButtonLabelBasedOnEcho(mToggleHidePasswordButton, mPasswordTextField);
+  private void toggleShowPassword() {
+    setShowPassword(!isEchoingPlainText(mPasswordTextField));
+  }
+
+  private void setShowPassword(boolean show) {
+    setTextFieldEcho(mPasswordTextField, show);
+    setButtonLabelBasedOnEcho(mToggleShowPasswordButton, mPasswordTextField);
   }
 
   /**
@@ -604,6 +603,7 @@ public class PasswordsTreeView
     mUsernameTextField.setText(passwordItem.usr);
     mPasswordTextField.setText(passwordItem.pwd);
     mNotesTextArea.setText(passwordItem.nts);
+    setShowPassword(false);
     hideNotes(true);
   }
 
