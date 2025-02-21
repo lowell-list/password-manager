@@ -4,11 +4,12 @@
  * Date        : 27 Dec 2008
  * Origin OS   : Windows XP
  * -----------------------------------------------------------------------------
- * Copyright (c) 2008, 2023 Lowell List
+ * Copyright (c) 2008, 2025 Lowell List
  * -------------------------------------------------------------------------- */
 
 import java.awt.*;
 import java.net.JarURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.jar.Manifest;
 import java.util.jar.Attributes;
@@ -102,7 +103,7 @@ public class PasswordManager
       return defaultValue;
     }
     try {
-      URL url = new URL(classPath);
+      URL url = (new URI(classPath)).toURL();
       JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
       Manifest manifest = jarConnection.getManifest();
       Attributes attributes = manifest.getMainAttributes();
