@@ -41,6 +41,11 @@ a file hosting service like Dropbox, Google Drive, or OneDrive.
 ## Nice To Have
 
 - [x] resort the tree when changing the title of an item
-- [ ] add support for generating passwords
+- [x] add support for generating passwords
+- [ ] if no items, auto-create a default item
 - [ ] don't show exact number of characters in password field
 - [ ] support nested password items
+
+## Password to Test File
+
+p

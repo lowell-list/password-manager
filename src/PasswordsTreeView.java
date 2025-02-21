@@ -54,6 +54,7 @@ public class PasswordsTreeView
   private TextField mPasswordTextField;
   private Button mCopyPasswordButton;
   private Button mToggleShowPasswordButton;
+  private Button mGeneratePasswordButton;
   private TextArea mNotesTextArea;
   private Button mToggleHideNotesButton;
 
@@ -96,6 +97,7 @@ public class PasswordsTreeView
     mPasswordTextField = new TextField();
     mCopyPasswordButton = new Button();
     mToggleShowPasswordButton = new Button();
+    mGeneratePasswordButton = new Button();
     mNotesTextArea = new TextArea("", 0, 0, TextArea.SCROLLBARS_VERTICAL_ONLY);
     mNotesTextArea.setFont(new Font("courier", Font.PLAIN, 12));
     mToggleHideNotesButton = new Button();
@@ -120,6 +122,7 @@ public class PasswordsTreeView
     mPasswordLabel.setAlignment(Label.RIGHT);
     mCopyPasswordButton.setLabel("Copy");
     setShowPassword(false);
+    mGeneratePasswordButton.setLabel("Generate");
     hideNotes(true);
 
     // add components
@@ -138,6 +141,7 @@ public class PasswordsTreeView
     mDetailPanel.add(mPasswordTextField);
     mDetailPanel.add(mCopyPasswordButton);
     mDetailPanel.add(mToggleShowPasswordButton);
+    mDetailPanel.add(mGeneratePasswordButton);
     mDetailPanel.add(mNotesTextArea);
     mDetailPanel.add(mToggleHideNotesButton);
 
@@ -220,15 +224,10 @@ public class PasswordsTreeView
         onUsernameTextKeyReleased(evt);
       }
     });
-    mPasswordTextField.addKeyListener(new KeyListener() {
-      public void keyTyped(KeyEvent evt) {
-      }
-
-      public void keyPressed(KeyEvent evt) {
-      }
-
-      public void keyReleased(KeyEvent evt) {
-        onPasswordTextKeyReleased(evt);
+    mPasswordTextField.addTextListener(new TextListener() {
+      public void textValueChanged(TextEvent evt) {
+        mGeneratePasswordButton.setVisible(mPasswordTextField.getText().length() == 0);
+        onPasswordTextValueChanged(null);
       }
     });
     mCopyUsernameButton.addActionListener(new ActionListener() {
@@ -244,6 +243,11 @@ public class PasswordsTreeView
     mToggleShowPasswordButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         toggleShowPassword();
+      }
+    });
+    mGeneratePasswordButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        mPasswordTextField.setText(generateRandomPassword(20));
       }
     });
     mNotesTextArea.addKeyListener(new KeyListener() {
@@ -324,7 +328,8 @@ public class PasswordsTreeView
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
     PasswordsView.layoutLabelAndField(top, dtlpnlsiz.width, mPasswordLabel, mPasswordTextField);
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
-    layoutActionButtons(top, dtlpnlsiz.width, new Button[] { mCopyPasswordButton, mToggleShowPasswordButton });
+    layoutActionButtons(top, dtlpnlsiz.width,
+        new Button[] { mCopyPasswordButton, mToggleShowPasswordButton, mGeneratePasswordButton });
     top += PasswordsView.TEXTFIELD_HEIGHT + PasswordsView.INNER_PAD;
 
     // layout notes
@@ -335,13 +340,13 @@ public class PasswordsTreeView
   }
 
   private void layoutActionButtons(int top, int containerWidth, Button[] buttons) {
-    int btnwth = 60;
+    int btnwth = PasswordsView.BUTTON_WIDTH;
     for (int i = 0; i < buttons.length; i++) {
       buttons[i].setBounds(
           containerWidth - btnwth - (PasswordsView.INNER_PAD * i) - (btnwth * i),
           top,
           btnwth,
-          PasswordsView.TEXTFIELD_HEIGHT);
+          PasswordsView.BUTTON_HEIGHT);
     }
   }
 
@@ -748,7 +753,7 @@ public class PasswordsTreeView
     });
   }
 
-  private void onPasswordTextKeyReleased(KeyEvent evt) {
+  private void onPasswordTextValueChanged(KeyEvent evt) {
     onKeyReleasedGeneric(evt, (passwordItem) -> {
       passwordItem.pwd = mPasswordTextField.getText();
     });
@@ -771,6 +776,26 @@ public class PasswordsTreeView
         .setContents(
             new StringSelection(text),
             null);
+  }
+
+  /**
+   * Generate a random password of the given length.
+   */
+  private String generateRandomPassword(int length) {
+    String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    String lowerCase = "abcdefghijklmnopqrstuvwxyz";
+    String digits = "0123456789";
+    String punctuation = "!@#$%^";
+
+    String allChars = upperCase + lowerCase + digits + punctuation;
+    StringBuilder password = new StringBuilder();
+
+    for (int i = 0; i < length; i++) {
+      int index = (int) (Math.random() * allChars.length());
+      password.append(allChars.charAt(index));
+    }
+
+    return password.toString();
   }
 
   /**

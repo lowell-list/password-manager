@@ -158,18 +158,23 @@ public class PasswordManagerApplet
   public void onMainComponentResized(ComponentEvent evt) {
     int wth; // applet width
     int hgt; // applet height
+    int btnwth; // button width
+    int btnhgt; // button height
 
     if (!mInitialized) {
       return;
     }
     wth = Math.max(this.getSize().width, 400);
     hgt = Math.max(this.getSize().height, 300);
+    btnwth = PasswordsView.BUTTON_WIDTH;
+    btnhgt = PasswordsView.BUTTON_HEIGHT;
 
+    // TODO: use INNER_PAD constant from PasswordsView here
     mPasswordsView.setBounds(5, 5, wth - 10, hgt - 60);
-    mEncryptButton.setBounds(wth - 150, hgt - 50, 70, 20);
-    mDecryptButton.setBounds(wth - 75, hgt - 50, 70, 20);
+    mEncryptButton.setBounds(wth - ((btnwth * 2) + 10), hgt - ((btnhgt * 2) + 10), btnwth, btnhgt);
+    mDecryptButton.setBounds(wth - ((btnwth) + 5), hgt - ((btnhgt * 2) + 10), btnwth, btnhgt);
     mStatusLabel.setBounds(5, hgt - 25, wth - 160, 20);
-    mSaveAndCloseButton.setBounds(wth - 150, hgt - 25, 145, 20);
+    mSaveAndCloseButton.setBounds(wth - ((btnwth * 2) + 10), hgt - btnhgt - 5, ((btnwth * 2) + 5), btnhgt);
     mPasswordLabel.setBounds(5, hgt - 50, Math.max(mPasswordLabel.getPreferredSize().width, 70), 20);
     mPasswordTextField.setBounds(5 + mPasswordLabel.getSize().width + 10, hgt - 50, 100, 20);
   }

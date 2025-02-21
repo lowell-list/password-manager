@@ -143,10 +143,10 @@ public class PasswordsView
     Dimension ctrsiz = this.getSize();
 
     // text/tree toggle button (top right)
-    mTextTreeToggleButton.setBounds(ctrsiz.width - 70, 0, 70, 20);
+    mTextTreeToggleButton.setBounds(ctrsiz.width - BUTTON_WIDTH, 0, BUTTON_WIDTH, BUTTON_HEIGHT);
 
     // search label and field (top)
-    layoutLabelAndField(0, ctrsiz.width - (70 + INNER_PAD), mFindLabel, mFindTextField);
+    layoutLabelAndField(0, ctrsiz.width - (BUTTON_WIDTH + INNER_PAD), mFindLabel, mFindTextField);
     Dimension schlblsiz = mFindLabel.getSize();
 
     // main area dimensions: used for text area, tree scroll pane, and detail panel
@@ -307,6 +307,8 @@ public class PasswordsView
    * ---------------------------------------------------------------------------
    */
 
+  public static final int BUTTON_WIDTH = 70;
+  public static final int BUTTON_HEIGHT = 20;
   public static final int TEXTFIELD_HEIGHT = 20;
   public static final int INNER_PAD = 5;
 
