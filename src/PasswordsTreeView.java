@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
@@ -833,23 +832,25 @@ public class PasswordsTreeView
 
     /** sort children vector in place */
     public void sortChildren() {
-      @SuppressWarnings("unchecked") // ignore cast warning
-      java.util.List<SortableTreeNode> childrenCast = this.children;
-      Collections.sort(childrenCast, ALPHABETICAL_COMPARATOR);
+      this.children.sort(ALPHABETICAL_COMPARATOR);
     }
   }
 
-  static class AlphabeticalComparator
-      implements Comparator<SortableTreeNode> {
+  static class AlphabeticalComparator implements Comparator<TreeNode> {
+
     public AlphabeticalComparator() {
       super();
     }
 
     @Override
-    public int compare(SortableTreeNode o1, SortableTreeNode o2) {
-      PasswordItem item1 = (PasswordItem) o1.getUserObject();
-      PasswordItem item2 = (PasswordItem) o2.getUserObject();
-      return item1.compareTo(item2);
+    public int compare(TreeNode o1, TreeNode o2) {
+      if (o1 instanceof SortableTreeNode && o2 instanceof SortableTreeNode) {
+        PasswordItem item1 = (PasswordItem) ((SortableTreeNode) o1).getUserObject();
+        PasswordItem item2 = (PasswordItem) ((SortableTreeNode) o2).getUserObject();
+        return item1.compareTo(item2);
+      } else {
+        throw new IllegalArgumentException("Cannot compare non-SortableTreeNode objects");
+      }
     }
   }
 
