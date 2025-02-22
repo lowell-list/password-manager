@@ -9,6 +9,8 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 
+import java.security.SecureRandom;
+
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -790,8 +792,9 @@ public class PasswordsTreeView
     String allChars = upperCase + lowerCase + digits + punctuation;
     StringBuilder password = new StringBuilder();
 
+    SecureRandom secureRandom = new SecureRandom();
     for (int i = 0; i < length; i++) {
-      int index = (int) (Math.random() * allChars.length());
+      int index = (int) (secureRandom.nextDouble() * allChars.length());
       password.append(allChars.charAt(index));
     }
 
