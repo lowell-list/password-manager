@@ -856,6 +856,7 @@ public class PasswordsTreeView
     }
 
     /** sort children vector in place */
+    @SuppressWarnings("unchecked")
     public void sortChildren() {
       this.children.sort(ALPHABETICAL_COMPARATOR);
     }
